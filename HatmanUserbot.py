@@ -185,7 +185,7 @@ async def show_paypal_link(client, message):
     else:
         await message.edit_text("No link PayPal set. Use .paypal perto set a link.")
         
-@ubot.on_message(filters.user("self") & filters.command("paypal", "."))
+@ubot.on_message(filters.user("self") & filters.command("block", "."))
 async def block_user(client, message):
     try:
         # Estrai l'ID dell'utente a cui si sta rispondendo
