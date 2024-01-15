@@ -8,6 +8,7 @@ from pyrogram.enums import ChatType, ParseMode, UserStatus
 from pyrogram.raw.functions.account import UpdateNotifySettings
 from pyrogram.raw.base import InputPeer
 from pyrogram.raw.types import InputPeerNotifySettings, InputNotifyPeer, InputPeerChat, Message
+from pyrogram.types import ChatPermissions
 import asyncio
 import time
 import asyncio
@@ -208,10 +209,10 @@ async def unblock_user(client, message):
         # Sblocca l'utente
         await client.unblock_user(user_id)
 
-        await message.edit_text("Iser blocked successfully.")
+        await message.edit_text("User unblocked successfully.")
     except Exception as e:
-        print(f"Error while blocking user: {e}")
-        await message.edit_text("Error while blocking user.")
+        print(f"Error while unblocking user: {e}")
+        await message.edit_text("Error while unblocking user.")
 
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(client, message):
