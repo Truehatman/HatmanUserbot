@@ -1,35 +1,78 @@
-from pyrogram import Client, filters
-import schedule
+from sched import scheduler
+from pyrogram import Client, filters, idle
+from pyrogram.raw.functions.messages import StartBot, DeleteHistory, InstallStickerSet
+from pyrogram.raw.functions.help import GetUserInfo
+from pyrogram.errors import * 
+from pyrogram.errors import UsernameInvalid
+from pyrogram.enums import ChatType, ParseMode, UserStatus
+from pyrogram.raw.functions.account import UpdateNotifySettings
+from pyrogram.raw.base import InputPeer
+from pyrogram.raw.types import InputPeerNotifySettings, InputNotifyPeer, InputPeerChat, Message
+import asyncio
 import time
+import asyncio
+import datetime
+from multiprocessing import get_context
+import os
+import traceback
+import requests
+import validators
+from pathlib import Path
+from random import randint
+import json
+import random
+import string
+from random import randint
+import time
+ubot = Client("killersession", api_id=28, api_hash="542", lang_code="it")
+ubot.start()
 
-# Credenziali API comuni
-api_id = '25047326'
-api_hash = '9673ea812441c77e912979cd0f8a2572'
+IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
+statusse = False
+ignore = []
 
-# Lista delle sessioni con rispettivi numeri di telefono
-sessions = [
-    {'phone_number': '+39 351 555 7518'},
-    # Aggiungi più sessioni secondo necessità
-]
+# Addword
+class Database:
+    def __init__(self, file_name: str):
+        self.database = file_name
+        if os.path.exists(file_name) == False:
+            f = open(file_name, "a+")
+            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False}))
+            f.close()
 
-# Variabile per memorizzare il link PayPal generico
+    async def save(self, update: dict):
+        os.remove(self.database)
+        f = open(self.database, "a+")
+        f.write(json.dumps(update))
+        f.close()
+
+    async def add_word(self, word: str, risposta: str):
+        update = json.load(open(self.database))
+        update["word"][str(word)] = risposta
+        await self.save(update)
+        return json.load(open(self.database))["word"][word]
+
+    async def add_wordr(self, word: str, risposta: str):
+        update = json.load(open(self.database))
+        update["wordr"][str(word)] = risposta
+        await self.save(update)
+        return json.load(open(self.database))["wordr"][word]
+word = Database("word.json")
+
 paypal_link = None
 
-#Creazione di una lista gruppi
 gruppi = []
 
-# Creazione di una lista di clienti Pyrogram
-clients = [Client(f"{session['phone_number']}", api_id, api_hash) for session in sessions]
 
-@Client.on_message(filters.command(["help"]))
+@ubot.on_message(filters.user("self") & filters.command("help", "."))
 async def help_command(client, message):
     await message.reply_text("https://telegra.ph/HatmanUserbot-01-14")
 
-@Client.on_message(filters.command("creator"))
+@ubot.on_message(filters.user("self") & filters.command("dev", "."))
 async def creator_command(client, message):
     await message.reply_text("I am developed by @hatmanexchanger!")
 
-@Client.on_message(filters.command("percentage"))
+@ubot.on_message(filters.user("self") & filters.command("percentuale", "."))
 async def percentage_command(client, message):
     # Estrai il testo del messaggio dopo il comando
     command_text = message.text.split(' ', 2)[1:]
@@ -48,14 +91,14 @@ async def percentage_command(client, message):
         # Gestisce il caso in cui la conversione o l'accesso ai valori fallisce
         await message.reply_text("Right command is: .percentage [number] [percentage]")
 
-@Client.on_message(filters.command("addgroup"))
+@ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
 async def add_group_command(client, message):
     try:
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
         gruppo_id = int(command_text)
 
-        # Aggiungi il gruppo alla lista con un messaggio di default solo se non è già presente
+        # Aggiungi il gruppo alla lista con un messaggio di default solo se non Ã¨ giÃ  presente
         if gruppo_id not in gruppi:
             gruppi[gruppo_id] = {'intervallo': 5, 'messaggio': ""}
             await message.reply_text(f"Group {gruppo_id} added to the list.")
@@ -64,7 +107,7 @@ async def add_group_command(client, message):
     except (ValueError, IndexError):
         await message.reply_text("Right command: .addgroup [id_group]")
 
-@Client.on_message(filters.command("spam"))
+@ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client, message):
     try:
         # Estrai il testo del messaggio dopo il comando
@@ -77,7 +120,7 @@ async def spam_command(client, message):
         gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
 
         # Pianifica l'invio del messaggio al gruppo ogni intervallo specificato
-        schedule.every(intervallo).minutes.do(send_spam, client, gruppo_id)
+        scheduler.every(intervallo).minutes.do(send_spam, client, gruppo_id)
 
         await message.reply_text(f"Spam on! i will send the message every {intervallo} minutes.")
     except (ValueError, IndexError):
@@ -90,7 +133,7 @@ def send_spam(client, gruppo_id):
     except Exception as e:
         print(f"error while the sending of the message in group {gruppo_id}: {e}")
 
-@Client.on_message(filters.command("listgroups"))
+@ubot.on_message(filters.user("self") & filters.command("listgroup", "."))
 async def list_groups_command(client, message):
     elenco_gruppi = "\n".join([f"{gruppo_id}: {client.get_chat(gruppo_id).title}" for gruppo_id in gruppi])
     await message.reply_text(f"List of groups:\n{elenco_gruppi}")
@@ -107,7 +150,7 @@ async def stop_spam_command(client, message):
         print(f"Error while stopping spam  {e}")
         await message.reply_text("Error while stopping spam")
 
-@Client.on_message(filters.command(["cloud"], prefixes=".") & filters.reply)
+@ubot.on_message(filters.user("self") & filters.command("cloud", "."))
 async def save_to_cloud(client, message):
     try:
         # Estrai il messaggio a cui si sta rispondendo
@@ -120,7 +163,7 @@ async def save_to_cloud(client, message):
     except Exception as e:
         print(f"Error while the saving of the message: {e}")
 
-@Client.on_message(filters.command(["paypal"], prefixes="."))
+@ubot.on_message(filters.user("self") & filters.command("paypal", "."))
 async def set_paypal_link(client, message):
     global paypal_link
     try:
@@ -133,16 +176,16 @@ async def set_paypal_link(client, message):
 
         await message.reply_text("Link PayPal set successfully.")
     except (IndexError, ValueError):
-        await message.reply_text("Right command: /paypal [link_paypal]")
+        await message.reply_text("Right command: .paypal [link_paypal]")
 
-@Client.on_message(filters.command(["pp"], prefixes="."))
+@ubot.on_message(filters.user("self") & filters.command("pp", "."))
 async def show_paypal_link(client, message):
     if paypal_link:
         await message.reply_text(f"Link PayPal:\n{paypal_link}")
     else:
-        await message.reply_text("No link PayPal set. Use /paypal perto set a link.")
+        await message.reply_text("No link PayPal set. Use .paypal perto set a link.")
         
-@Client.on_message(filters.command(["block"], prefixes=".") & filters.reply)
+@ubot.on_message(filters.user("self") & filters.command("paypal", "."))
 async def block_user(client, message):
     try:
         # Estrai l'ID dell'utente a cui si sta rispondendo
@@ -156,7 +199,7 @@ async def block_user(client, message):
         print(f"Error while blocking the user:{e}")
         await message.reply_text("Error while blocking the user.")
 
-@Client.on_message(filters.command(["unblock"], prefixes=".") & filters.reply)
+@ubot.on_message(filters.command("unblock", ".") & filters.reply)
 async def unblock_user(client, message):
     try:
         # Estrai l'ID dell'utente a cui si sta rispondendo
@@ -170,7 +213,7 @@ async def unblock_user(client, message):
         print(f"Error while blocking user: {e}")
         await message.reply_text("Error while blocking user.")
 
-@Client.on_message(filters.command(["mute"], prefixes=".") & filters.reply)
+@ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(client, message):
     try:
         # Estrai l'ID dell'utente a cui si sta rispondendo
@@ -184,7 +227,7 @@ async def mute_user(client, message):
         print(f"Error while muting user: {e}")
         await message.reply_text("Error while muting user.")
         
-@Client.on_message(filters.command(["unmute"], prefixes=".") & filters.reply)
+@ubot.on_message(filters.command("unmute", ".") & filters.reply)
 async def unmute_user(client, message):
     try:
         # Estrai l'ID dell'utente a cui si sta rispondendo
@@ -198,31 +241,4 @@ async def unmute_user(client, message):
         print(f"Error while unmuting user {e}")
         await message.reply_text("Error while unmuting user.")
 
-async def main():
-    # Avvio di tutti i clienti
-    for client in clients:
-        await client.start()
-        print(f"Client connected for {client.get_me().username}")
-
-    # Attivazione dei comandi e inizio dell'ascolto
-    for client in clients:
-        await client.send_message('me', ".help")  # Invia il comando di help per mostrare i comandi
-        await client.send_message('me', ".creator")  # Invia il comando /creator per mostrare il creatore
-        await client.send_message('me', ".percentage 50 20")  # Esempio di utilizzo del comando /percentage
-        await client.send_message('me', ".addgroup 123456")  # Esempio di aggiunta di un gruppo alla lista
-        await client.send_message('me', ".spam 10 Messaggio di spam personalizzato")  # Esempio di attivazione dello spam con parametri personalizzati
-        await client.send_message('me', ".listgroups")  # Esempio di comando per mostrare l'elenco dei gruppi
-
-        await client.send_message('me', "/paypal https://paypal.me/il_tuo_link")  # Esempio di impostazione del link PayPal
-        await client.send_message('me', "/pp")  # Esempio di comando per mostrare il link PayPal
-
- # Esegui il loop di scheduling in background
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-    await Client.run(clients)
-
-if __name__ == '__main__':
-    import asyncio
-    asyncio.run(main())
+idle()
