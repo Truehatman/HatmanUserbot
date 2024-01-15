@@ -214,6 +214,7 @@ async def unblock_user(client, message):
         print(f"Error while unblocking user: {e}")
         await message.edit_text("Error while unblocking user.")
 
+# Comando per mutare un utente in risposta
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(client, message):
     try:
