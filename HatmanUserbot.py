@@ -24,7 +24,7 @@ import random
 import string
 from random import randint
 import time
-ubot = Client("killersession", api_id=28, api_hash="542", lang_code="it")
+ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
 ubot.start()
 
 IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
