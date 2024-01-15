@@ -72,7 +72,7 @@ async def help_command(client, message):
 async def creator_command(client, message):
     await message.edit_text("I am developed by @hatmanexchanger!")
 
-@ubot.on_message(filters.user("self") & filters.command("percentuale", "."))
+@ubot.on_message(filters.user("self") & filters.command("percentage", "."))
 async def percentage_command(client, message):
     # Estrai il testo del messaggio dopo il comando
     command_text = message.text.split(' ', 2)[1:]
