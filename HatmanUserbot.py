@@ -84,10 +84,11 @@ async def percentage_command(client, message):
         percentuale = float(command_text[1])
 
         # Calcola la percentuale
-        risultato = (percentuale / 100) * numero
+        risultato1 = (percentuale / 100) * numero
+        risultato2 = numero - risultato1
 
         # Invia la risposta
-        await message.edit_text(f"{percentuale}% of {numero} is {risultato}")
+        await message.edit_text(f"{percentuale}% of {numero} is {risultato1} and {numero} - {risultato1} is {risultato2} ")
     except (ValueError, IndexError):
         # Gestisce il caso in cui la conversione o l'accesso ai valori fallisce
         await message.edit_text("Right command is: .percentage [number] [percentage]")
