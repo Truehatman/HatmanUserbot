@@ -173,7 +173,7 @@ async def list_groups_command(client, message):
         elenco_gruppi = "\n".join([f"{gruppo_id}: {client.get_chat(gruppo_id).title}" for gruppo_id in gruppi])
         await message.edit_text(f"List of groups:\n{elenco_gruppi}")
     except Exception as e:
-        await message.edit_text(f"An error occurred while fetching the list of groups. Error details: {str(e)}"
+        await message.edit_text(f"An error occurred while fetching the list of groups. Error details: {str(e)}")
 
 @ubot.on_message(filters.user("self") & filters.command("cloud", "."))
 async def save_to_cloud(client, message):
