@@ -97,7 +97,9 @@ async def add_group_command(client, message):
     try:
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
-        gruppo_id = int(command_text)
+        
+        # Ottieni l'ID del gruppo a partire dal suo username
+        gruppo_id = await client.get_chat(command_text).id
 
         # Aggiungi il gruppo alla lista con un messaggio di default solo se non è già presente
         if gruppo_id not in gruppi:
@@ -106,7 +108,7 @@ async def add_group_command(client, message):
         else:
             await message.edit_text(f"Group is already in the list {gruppo_id}.")
     except (ValueError, IndexError):
-        await message.edit_text("Right command: .addgroup [id_group]")
+        await message.edit_text("Right command: .addgroup [id_group] or [username]")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client, message):
