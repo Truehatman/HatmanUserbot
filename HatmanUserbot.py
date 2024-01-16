@@ -117,7 +117,7 @@ async def add_group_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .addgroup [id_group] or [username]")
 
-@ubot.on_message(filters.user("self") & filters.command("spam", "."))
+@ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
         # Estrai il testo del messaggio dopo il comando
@@ -125,40 +125,55 @@ async def spam_command(client, message):
         intervallo = int(command_text[0])
         messaggio = command_text[1]
 
+        # Interrompi la pianificazione per il gruppo se già in esecuzione
+        if message.chat.id in scheduled_tasks:
+            scheduled_tasks[message.chat.id].cancel()
+
         # Imposta l'intervallo e il messaggio di spam per il gruppo specifico
-        gruppo_id = message.chat.id
-        gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
+        gruppi[message.chat.id] = {'intervallo': intervallo, 'messaggio': messaggio}
 
         # Pianifica l'invio del messaggio al gruppo ogni intervallo specificato
-        scheduler.every(intervallo).minutes.do(send_spam, client, gruppo_id)
-
-        await message.edit_text(f"Spam on! i will send the message every {intervallo} minutes.")
+        task = asyncio.create_task(send_spam(client, message.chat.id))
+        scheduled_tasks[message.chat.id] = asyncio.ensure_future(
+            asyncio.sleep(intervallo * 60)
+        )
+        await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
 
-def send_spam(client, gruppo_id):
-    try:
-        # Invia il messaggio di spam al gruppo specifico
-        client.send_message(gruppo_id, gruppi[gruppo_id]['messaggio'])
-    except Exception as e:
-        print(f"error while the sending of the message in group {gruppo_id}: {e}")
-
-@ubot.on_message(filters.user("self") & filters.command("listgroup", "."))
-async def list_groups_command(client, message):
-    elenco_gruppi = "\n".join([f"{gruppo_id}: {client.get_chat(gruppo_id).title}" for gruppo_id in gruppi])
-    await message.edit_text(f"List of groups:\n{elenco_gruppi}")
-
-@Client.on_message(filters.command("stopspam"))
+@ubot.on_message(filters.command("stopspam"))
 async def stop_spam_command(client, message):
     try:
-        # Interrompi la pianificazione per tutti i gruppi
-        for group_id in gruppi:
-            schedule.clear(f'send_spam_{group_id}')
-        
+        # Interrompi la pianificazione per il gruppo specifico
+        if message.chat.id in scheduled_tasks:
+            scheduled_tasks[message.chat.id].cancel()
+            del scheduled_tasks[message.chat.id]
+
         await message.edit_text("Spam stopped successfully.")
     except Exception as e:
-        print(f"Error while stopping spam  {e}")
+        print(f"Error while stopping spam: {e}")
         await message.edit_text("Error while stopping spam")
+
+async def send_spam(client, gruppo_id):
+    try:
+        # Invia il messaggio di spam al gruppo specifico
+        await client.send_message(gruppo_id, gruppi[gruppo_id]['messaggio'])
+        # Pianifica nuovamente l'invio del messaggio al gruppo ogni intervallo specificato
+        scheduled_tasks[gruppo_id] = asyncio.ensure_future(
+            asyncio.sleep(gruppi[gruppo_id]['intervallo'] * 60)
+        )
+    except asyncio.CancelledError:
+        print(f"Spam task cancelled for group {gruppo_id}")
+    except Exception as e:
+        print(f"Error while sending the message in group {gruppo_id}: {e}")
+
+@ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
+async def list_groups_command(client, message):
+    try:
+        elenco_gruppi = "\n".join([f"{gruppo_id}: {client.get_chat(gruppo_id).title}" for gruppo_id in gruppi])
+        await message.edit_text(f"List of groups:\n{elenco_gruppi}")
+    except Exception as e:
+        await message.edit_text(f"An error occurred while fetching the list of groups. Error details: {str(e)}"
 
 @ubot.on_message(filters.user("self") & filters.command("cloud", "."))
 async def save_to_cloud(client, message):
