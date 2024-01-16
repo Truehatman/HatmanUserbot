@@ -186,7 +186,7 @@ async def show_paypal_link(client, message):
     else:
         await message.edit_text("No link PayPal set. Use .ppset to set a link.")
 
-ubot.on_message(filters.user("self") & filters.command("ltcset", "."))
+@ubot.on_message(filters.user("self") & filters.command("ltcset", "."))
 async def set_litecoin_link(client, message):
     global litecoin_link
     try:
