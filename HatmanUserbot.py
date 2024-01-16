@@ -61,7 +61,7 @@ class Database:
 word = Database("word.json")
 
 paypal_link = None
-litecoin_link=None
+litecoin_link = None
 gruppi = []
 muted_users = {}
 
