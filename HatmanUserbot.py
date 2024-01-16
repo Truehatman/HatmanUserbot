@@ -64,6 +64,7 @@ paypal_link = None
 litecoin_link = None
 gruppi = {}
 muted_users = {}
+scheduled_tasks = {}
 
 @ubot.on_message(filters.user("self") & filters.command("help", "."))
 async def help_command(client, message):
@@ -133,6 +134,7 @@ async def list_groups_command(client, message):
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
+        global scheduled_tasks  # Aggiungi questa riga per dichiarare scheduled_tasks come variabile globale
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 2)[1:]
         intervallo = int(command_text[0])
@@ -157,6 +159,7 @@ async def spam_command(client, message):
 @ubot.on_message(filters.command("stopspam"))
 async def stop_spam_command(client, message):
     try:
+        global scheduled_tasks  # Aggiungi questa riga per dichiarare scheduled_tasks come variabile globale
         # Interrompi la pianificazione per il gruppo specifico
         if message.chat.id in scheduled_tasks:
             scheduled_tasks[message.chat.id].cancel()
