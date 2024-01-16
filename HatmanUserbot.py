@@ -99,15 +99,21 @@ async def add_group_command(client, message):
         command_text = message.text.split(' ', 1)[1]
         
         # Ottieni l'ID del gruppo a partire dal suo username
-        chat = await client.get_chat(command_text).id
-        gruppo_id = chat.id
+        try:
+            chat = await client.get_chat(command_text)
+            gruppo_id = chat.id
+        except ValueError:
+            gruppo_id = None
 
-        # Aggiungi il gruppo alla lista con un messaggio di default solo se non è già presente
-        if gruppo_id not in gruppi:
-            gruppi[gruppo_id] = {'intervallo': 5, 'messaggio': ""}
-            await message.edit_text(f"Group {gruppo_id} added to the list.")
+        # Aggiungi il gruppo alla lista solo se non è già presente
+        if gruppo_id is not None:
+            if gruppo_id not in gruppi:
+                gruppi[gruppo_id] = {'intervallo': 5, 'messaggio': ""}
+                await message.edit_text(f"Group {gruppo_id} added to the list.")
+            else:
+                await message.edit_text(f"Group {gruppo_id} is already in the list.")
         else:
-            await message.edit_text(f"Group is already in the list {gruppo_id}.")
+            await message.edit_text("Invalid group ID or username.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .addgroup [id_group] or [username]")
 
