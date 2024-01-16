@@ -178,19 +178,6 @@ async def send_spam(client, gruppo_id):
     except Exception as e:
         print(f"Error while sending the message in group {gruppo_id}: {e}")
 
-@ubot.on_message(filters.user("self") & filters.command("cloud", "."))
-async def save_to_cloud(client, message):
-    try:
-        # Estrai il messaggio a cui si sta rispondendo
-        replied_message = message.reply_to_message
-
-        # Salva il messaggio nei messaggi salvati
-        await client.save_file(replied_message, file_name="")
-
-        await message.edit_text("Message correctly saved")
-    except Exception as e:
-        print(f"Error while the saving of the message: {e}")
-
 @ubot.on_message(filters.user("self") & filters.command("ppset", "."))
 async def set_paypal_link(client, message):
     global paypal_link
