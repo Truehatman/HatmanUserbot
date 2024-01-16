@@ -177,7 +177,7 @@ async def set_paypal_link(client, message):
 
         await message.edit_text("Link PayPal set successfully.")
     except (IndexError, ValueError):
-        await message.edit_text("Right command: .paypal [link_paypal]")
+        await message.edit_text("Right command: .ppset [link_paypal]")
 
 @ubot.on_message(filters.user("self") & filters.command("pp", "."))
 async def show_paypal_link(client, message):
@@ -187,7 +187,7 @@ async def show_paypal_link(client, message):
         await message.edit_text("No link PayPal set. Use .ppset to set a link.")
 
 ubot.on_message(filters.user("self") & filters.command("ltcset", "."))
-async def set_paypal_link(client, message):
+async def set_litecoin_link(client, message):
     global litecoin_link
     try:
         # Estrai il testo del messaggio dopo il comando
@@ -202,8 +202,8 @@ async def set_paypal_link(client, message):
         await message.edit_text("Right command: .ltcset [Address]")
 
 @ubot.on_message(filters.user("self") & filters.command("ltc", "."))
-async def show_paypal_link(client, message):
-    if paypal_link:
+async def show_litecoin_link(client, message):
+    if litecoin_link:
         await message.edit_text(f"{litecoin_link}")
     else:
         await message.edit_text("No ltc address  set. Use .ltcset to set a link.")
