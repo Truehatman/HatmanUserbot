@@ -92,14 +92,14 @@ async def percentage_command(client, message):
         # Gestisce il caso in cui la conversione o l'accesso ai valori fallisce
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
-@ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
+@ubot.on_message(filters.user("self") & filters.command("addgroup", prefixes="."))
 async def add_group_command(client, message):
     try:
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
         gruppo_id = int(command_text)
 
-        # Aggiungi il gruppo alla lista con un messaggio di default solo se non Ã¨ giÃ  presente
+        # Aggiungi il gruppo alla lista con un messaggio di default solo se non è già presente
         if gruppo_id not in gruppi:
             gruppi[gruppo_id] = {'intervallo': 5, 'messaggio': ""}
             await message.edit_text(f"Group {gruppo_id} added to the list.")
