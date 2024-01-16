@@ -214,16 +214,16 @@ async def unblock_user(client, message):
         print(f"Error while unblocking user: {e}")
         await message.edit_text("Error while unblocking user.")
 
-# Comando per mutare un utente in risposta
+# Comando per disattivare le notifiche per un utente in risposta
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(client, message):
     try:
         # Estrai l'ID dell'utente a cui si sta rispondendo
         user_id = message.reply_to_message.from_user.id
 
-        # Muta l'utente
-        await client.restrict_chat_member(message.chat.id, user_id, ChatPermissions())
-
+        # Disattiva le notifiche per la chat privata con l'utente
+        await client.set_notifications_enabled(user_id, False)
+        
         await message.edit_text("User muted successfully.")
     except Exception as e:
         print(f"Error while muting user: {e}")
@@ -235,8 +235,8 @@ async def unmute_user(client, message):
         # Estrai l'ID dell'utente a cui si sta rispondendo
         user_id = message.reply_to_message.from_user.id
 
-        # Rimuovi la muta dall'utente
-        await client.restrict_chat_member(message.chat.id, user_id, ChatPermissions(can_send_messages=True))
+        # Attiva le notifiche per la chat privata con l'utente
+        await client.set_notifications_enabled(user_id, True)
 
         await message.edit_text("User unmuted successfully.")
     except Exception as e:
