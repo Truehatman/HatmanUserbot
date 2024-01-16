@@ -171,7 +171,7 @@ async def send_spam(client, gruppo_id):
 @ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
 async def list_groups_command(client, message):
     try:
-        elenco_gruppi = "\n".join([f"{gruppo_id}: {client.get_chat(gruppo_id).title}" for gruppo_id in gruppi])
+        elenco_gruppi = "\n".join([f"{gruppo_id}: {await client.get_chat(gruppo_id).title}" for gruppo_id in gruppi])
         await message.edit_text(f"List of groups:\n{elenco_gruppi}")
     except Exception as e:
         await message.edit_text(f"An error occurred while fetching the list of groups. Error details: {str(e)}")
