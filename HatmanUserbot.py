@@ -194,7 +194,7 @@ async def set_litecoin_link(client, message):
         command_text = message.text.split(' ', 1)[1]
         link_litecoin = command_text
 
-        # Imposta il link PayPal generico
+        # Imposta il link Litecoin generico
         litecoin_link = link_litecoin
 
         await message.edit_text("Ltc address set successfully.")
