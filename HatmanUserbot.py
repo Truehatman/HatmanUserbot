@@ -61,9 +61,9 @@ class Database:
 word = Database("word.json")
 
 paypal_link = None
-
+litecoin_link=None
 gruppi = []
-
+muted_users = {}
 
 @ubot.on_message(filters.user("self") & filters.command("help", "."))
 async def help_command(client, message):
@@ -164,7 +164,7 @@ async def save_to_cloud(client, message):
     except Exception as e:
         print(f"Error while the saving of the message: {e}")
 
-@ubot.on_message(filters.user("self") & filters.command("paypal", "."))
+@ubot.on_message(filters.user("self") & filters.command("ppset", "."))
 async def set_paypal_link(client, message):
     global paypal_link
     try:
@@ -184,8 +184,30 @@ async def show_paypal_link(client, message):
     if paypal_link:
         await message.edit_text(f"Link PayPal:\n{paypal_link}")
     else:
-        await message.edit_text("No link PayPal set. Use .paypal to set a link.")
-        
+        await message.edit_text("No link PayPal set. Use .ppset to set a link.")
+
+ubot.on_message(filters.user("self") & filters.command("ltcset", "."))
+async def set_paypal_link(client, message):
+    global litecoin_link
+    try:
+        # Estrai il testo del messaggio dopo il comando
+        command_text = message.text.split(' ', 1)[1]
+        link_litecoin = command_text
+
+        # Imposta il link PayPal generico
+        litecoin_link = link_litecoin
+
+        await message.edit_text("Ltc address set successfully.")
+    except (IndexError, ValueError):
+        await message.edit_text("Right command: .ltcset [Address]")
+
+@ubot.on_message(filters.user("self") & filters.command("ltc", "."))
+async def show_paypal_link(client, message):
+    if paypal_link:
+        await message.edit_text(f"{litecoin_link}")
+    else:
+        await message.edit_text("No ltc address  set. Use .ltcset to set a link.")
+       
 @ubot.on_message(filters.user("self") & filters.command("block", "."))
 async def block_user(client, message):
     try:
@@ -221,8 +243,8 @@ async def mute_user(client, message):
         # Estrai l'ID dell'utente a cui si sta rispondendo
         user_id = message.reply_to_message.from_user.id
 
-        # Disattiva le notifiche per la chat privata con l'utente
-        await client.set_notifications_enabled(user_id, False)
+        # Aggiungi l'utente al dizionario dei muteati
+        muted_users[user_id] = True
         
         await message.edit_text("User muted successfully.")
     except Exception as e:
@@ -235,12 +257,23 @@ async def unmute_user(client, message):
         # Estrai l'ID dell'utente a cui si sta rispondendo
         user_id = message.reply_to_message.from_user.id
 
-        # Attiva le notifiche per la chat privata con l'utente
-        await client.set_notifications_enabled(user_id, True)
+        # Rimuovi l'utente dal dizionario dei muteati
+        muted_users.pop(user_id, None)
 
         await message.edit_text("User unmuted successfully.")
     except Exception as e:
         print(f"Error while unmuting user {e}")
         await message.edit_text("Error while unmuting user.")
+
+# Handler per eliminare i messaggi degli utenti muteati
+@ubot.on_message(filters.text)
+async def delete_muted_messages(client, message):
+    try:
+        # Verifica se l'utente è muteato
+        if message.from_user.id in muted_users:
+            # Elimina il messaggio
+            await message.delete()
+    except Exception as e:
+        print(f"Error while deleting muted user's message: {e}")
 
 idle()
