@@ -184,7 +184,7 @@ async def show_paypal_link(client, message):
     if paypal_link:
         await message.edit_text(f"Link PayPal:\n{paypal_link}")
     else:
-        await message.edit_text("No link PayPal set. Use .paypal perto set a link.")
+        await message.edit_text("No link PayPal set. Use .paypal to set a link.")
         
 @ubot.on_message(filters.user("self") & filters.command("block", "."))
 async def block_user(client, message):
