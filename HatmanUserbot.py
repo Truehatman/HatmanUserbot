@@ -98,14 +98,14 @@ async def add_group_command(client, message):
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
         
-        # Ottieni l'ID del gruppo a partire dal suo username
+        # Ottieni l'ID del gruppo a partire dal suo username o ID
         try:
-            chat = await client.get_chat(command_text)
+            chat = await client.get_chat(chat_id=command_text)
             gruppo_id = chat.id
         except ValueError:
             gruppo_id = None
 
-        # Aggiungi il gruppo alla lista solo se non è già presente
+        # Aggiungi il gruppo alla lista con un messaggio di default solo se non è già presente
         if gruppo_id is not None:
             if gruppo_id not in gruppi:
                 gruppi[gruppo_id] = {'intervallo': 5, 'messaggio': ""}
