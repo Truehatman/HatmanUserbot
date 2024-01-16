@@ -62,7 +62,7 @@ word = Database("word.json")
 
 paypal_link = None
 litecoin_link = None
-gruppi = []
+gruppi = {}
 muted_users = {}
 
 @ubot.on_message(filters.user("self") & filters.command("help", "."))
