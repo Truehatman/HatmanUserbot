@@ -153,13 +153,14 @@ async def spam_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
 
-@ubot.on_message(filters.command("stopspam"))
+@ubot.on_message(filters.command("stopspam", prefixes="."))
 async def stop_spam_command(client, message):
     try:
         global scheduled_tasks
         for gruppo_id in gruppi:
             if gruppo_id in scheduled_tasks:
                 scheduled_tasks[gruppo_id].cancel()
+                await asyncio.sleep(1)  # Aggiunto per evitare sovrapposizioni nella cancellazione
                 del scheduled_tasks[gruppo_id]
 
         await message.edit_text("Spam stopped successfully.")
@@ -169,10 +170,9 @@ async def stop_spam_command(client, message):
 
 async def send_spam(client, gruppo_id):
     try:
-        await client.send_message(gruppo_id, gruppi[gruppo_id]['messaggio'])
-        scheduled_tasks[gruppo_id] = asyncio.ensure_future(
-            asyncio.sleep(gruppi[gruppo_id]['intervallo'] * 60)
-        )
+        while True:
+            await client.send_message(gruppo_id, gruppi[gruppo_id]['messaggio'])
+            await asyncio.sleep(gruppi[gruppo_id]['intervallo'] * 60)
     except asyncio.CancelledError:
         print(f"Spam task cancelled for group {gruppo_id}")
     except Exception as e:
