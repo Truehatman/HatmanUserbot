@@ -134,36 +134,33 @@ async def list_groups_command(client, message):
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
-        global scheduled_tasks  # Aggiungi questa riga per dichiarare scheduled_tasks come variabile globale
-        # Estrai il testo del messaggio dopo il comando
+        global scheduled_tasks
         command_text = message.text.split(' ', 2)[1:]
         intervallo = int(command_text[0])
         messaggio = command_text[1]
 
-        # Interrompi la pianificazione per il gruppo se già in esecuzione
-        if message.chat.id in scheduled_tasks:
-            scheduled_tasks[message.chat.id].cancel()
+        for gruppo_id in gruppi:
+            if gruppo_id in scheduled_tasks:
+                scheduled_tasks[gruppo_id].cancel()
 
-        # Imposta l'intervallo e il messaggio di spam per il gruppo specifico
-        gruppi[message.chat.id] = {'intervallo': intervallo, 'messaggio': messaggio}
+            gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
+            task = asyncio.create_task(send_spam(client, gruppo_id))
 
-        # Pianifica l'invio del messaggio al gruppo ogni intervallo specificato
-        task = asyncio.create_task(send_spam(client, message.chat.id))
-        scheduled_tasks[message.chat.id] = asyncio.ensure_future(
-            asyncio.sleep(intervallo * 60)
-        )
-        await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes.")
+            scheduled_tasks[gruppo_id] = asyncio.ensure_future(
+                asyncio.sleep(intervallo * 60)
+            )
+        await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
 
 @ubot.on_message(filters.command("stopspam"))
 async def stop_spam_command(client, message):
     try:
-        global scheduled_tasks  # Aggiungi questa riga per dichiarare scheduled_tasks come variabile globale
-        # Interrompi la pianificazione per il gruppo specifico
-        if message.chat.id in scheduled_tasks:
-            scheduled_tasks[message.chat.id].cancel()
-            del scheduled_tasks[message.chat.id]
+        global scheduled_tasks
+        for gruppo_id in gruppi:
+            if gruppo_id in scheduled_tasks:
+                scheduled_tasks[gruppo_id].cancel()
+                del scheduled_tasks[gruppo_id]
 
         await message.edit_text("Spam stopped successfully.")
     except Exception as e:
@@ -172,9 +169,7 @@ async def stop_spam_command(client, message):
 
 async def send_spam(client, gruppo_id):
     try:
-        # Invia il messaggio di spam al gruppo specifico
         await client.send_message(gruppo_id, gruppi[gruppo_id]['messaggio'])
-        # Pianifica nuovamente l'invio del messaggio al gruppo ogni intervallo specificato
         scheduled_tasks[gruppo_id] = asyncio.ensure_future(
             asyncio.sleep(gruppi[gruppo_id]['intervallo'] * 60)
         )
