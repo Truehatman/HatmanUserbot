@@ -54,8 +54,8 @@ class Database:
         gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
         await self.save(update)
         return gruppi[chat_id]
-    
-     async def del_group(self, chat_id: int):
+
+    async def del_group(self, chat_id: int):
         update = json.load(open(self.database))
         gruppi = update.setdefault("gruppi", {})
         if chat_id in gruppi:
