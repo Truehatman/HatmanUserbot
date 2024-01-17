@@ -203,8 +203,8 @@ async def spam_command(client, message):
             gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
 
         # Cancella i task precedenti
-        for gruppo_id, task in scheduled_tasks.items():
-            task.cancel()
+        for gruppo_id in scheduled_tasks:
+            scheduled_tasks[gruppo_id].cancel()
 
         # Avvia il nuovo task
         task = asyncio.create_task(send_spam(client, gruppi))
