@@ -25,6 +25,7 @@ import random
 import string
 from random import randint
 import time
+import sqlite3
 ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
 ubot.start()
 
@@ -38,7 +39,7 @@ class Database:
         self.database = file_name
         if os.path.exists(file_name) == False:
             f = open(file_name, "a+")
-            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False}))
+            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "groups": {}}))
             f.close()
 
     async def save(self, update: dict):
@@ -47,17 +48,22 @@ class Database:
         f.write(json.dumps(update))
         f.close()
 
-    async def add_word(self, word: str, risposta: str):
+    async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
         update = json.load(open(self.database))
-        update["word"][str(word)] = risposta
+        update["groups"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
         await self.save(update)
-        return json.load(open(self.database))["word"][word]
+        return json.load(open(self.database))["groups"][chat_id]
+    
+    async def del_group(self, chat_id: int):
+        update = json.load(open(self.database))
+        if chat_id in update["groups"]:
+            del update["groups"][chat_id]
+            await self.save(update)
+            return True
+        else:
+            return False
 
-    async def add_wordr(self, word: str, risposta: str):
-        update = json.load(open(self.database))
-        update["wordr"][str(word)] = risposta
-        await self.save(update)
-        return json.load(open(self.database))["wordr"][word]
+
 word = Database("word.json")
 
 paypal_link = None
@@ -99,7 +105,7 @@ async def add_group_command(client, message):
     try:
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
-        
+
         # Ottieni l'ID del gruppo a partire dal suo username o ID
         try:
             chat = await client.get_chat(chat_id=command_text)
@@ -107,17 +113,40 @@ async def add_group_command(client, message):
         except ValueError:
             gruppo_id = None
 
-        # Aggiungi il gruppo alla lista con un messaggio di default solo se non è già presente
+        # Aggiungi il gruppo al database
         if gruppo_id is not None:
-            if gruppo_id not in gruppi:
-                gruppi[gruppo_id] = {'intervallo': 5, 'messaggio': ""}
-                await message.edit_text(f"Group {gruppo_id} added to the list.")
-            else:
-                await message.edit_text(f"Group {gruppo_id} is already in the list.")
+            group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="")
+            await message.edit_text(f"Group {gruppo_id} added to the list with settings: {group_settings}")
         else:
             await message.edit_text("Invalid group ID or username.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .addgroup [id_group] or [username]")
+
+@ubot.on_message(filters.user("self") & filters.command("delgroup", prefixes="."))
+async def del_group_command(client, message):
+    try:
+        # Estrai il testo del messaggio dopo il comando
+        command_text = message.text.split(' ', 1)[1]
+
+        # Ottieni l'ID del gruppo a partire dal suo username o ID
+        try:
+            chat = await client.get_chat(chat_id=command_text)
+            gruppo_id = chat.id
+        except ValueError:
+            gruppo_id = None
+
+        # Rimuovi il gruppo dalla lista e dal database
+        if gruppo_id is not None:
+            if gruppo_id in gruppi:
+                await word.del_group(gruppo_id)
+                del gruppi[gruppo_id]
+                await message.edit_text(f"Group {gruppo_id} removed from the list and database.")
+            else:
+                await message.edit_text(f"Group {gruppo_id} is not in the list.")
+        else:
+            await message.edit_text("Invalid group ID or username.")
+    except (ValueError, IndexError):
+        await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
 @ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
 async def list_groups_command(client, message):
