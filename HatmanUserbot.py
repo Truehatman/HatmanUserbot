@@ -39,7 +39,7 @@ class Database:
         self.database = file_name
         if os.path.exists(file_name) == False:
             f = open(file_name, "a+")
-            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "groups": {}}))
+            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}))
             f.close()
 
     async def save(self, update: dict):
@@ -64,6 +64,11 @@ class Database:
             return True
         else:
             return False
+
+    async def get_groups(self):
+        update = json.load(open(self.database))
+        gruppi = update.setdefault("gruppi", {})
+        return gruppi
 
 word = Database("word.json")
 
@@ -150,16 +155,17 @@ async def del_group_command(client, message):
         await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
 @ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
-async def list_groups_command(client, message):
+async def group_list_command(client, message):
     try:
-        elenco_gruppi = []
-        for gruppo_id in gruppi:
-            chat_info = await client.get_chat(gruppo_id)
-            elenco_gruppi.append(f"{gruppo_id}: {chat_info.title}")
-
-        await message.edit_text(f"List of groups:\n" + "\n".join(elenco_gruppi))
+        groups = await word.get_groups()
+        if groups:
+            group_list = "\n".join([f"{chat_id}: {group_data}" for chat_id, group_data in groups.items()])
+            await message.edit_text(f"Group list:\n{group_list}")
+        else:
+            await message.edit_text("No groups found.")
     except Exception as e:
-        await message.edit_text(f"An error occurred while fetching the list of groups. Error details: {str(e)}")
+        print(f"Error while fetching group list: {e}")
+        await message.edit_text("Error while fetching group list.")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
