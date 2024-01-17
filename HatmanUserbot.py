@@ -129,18 +129,21 @@ async def send_spam(client, group_id, intervallo, messaggio):
 
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
-async def spam_command(client, group_id, intervallo, messaggio):
+async def spam_command(client, message):
     try:
-        groups = await word.get_groups()
-
-        for group_id, group_data in groups.items():
-            intervallo = group_data.get("intervallo", 60)
-            messaggio = group_data.get("messaggio", "Hello!")
-
-            task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
-            scheduled_tasks[group_id] = task
-
-        await message.edit_text("Spam started successfully.")
+        args = message.text.split()
+        if len(args) == 3:
+            intervallo = int(args[1])
+            messaggio = " ".join(args[2:])
+            
+            groups = await word.get_groups()
+            for group_id, group_data in groups.items():
+                task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
+                scheduled_tasks[group_id] = task
+            
+            await message.edit_text(f"Spam started successfully in all groups.")
+        else:
+            await message.edit_text("Invalid command syntax. Use: .spam <intervallo> <messaggio>")
     except Exception as e:
         print(f"Error while starting spam: {e}")
         await message.edit_text("Error while starting spam.")
