@@ -179,10 +179,11 @@ async def del_group_command(client, message):
 
 async def send_spam(client, gruppi):
     try:
+        global gruppi  # Dichiarazione della variabile gruppi come globale
         while True:
             for gruppo_id, group_data in gruppi.items():
                 await client.send_message(gruppo_id, group_data['messaggio'])
-            await asyncio.sleep(group_data['intervallo'] * 60)
+                await asyncio.sleep(group_data['intervallo'] * 60)
     except asyncio.CancelledError:
         print("Spam task cancelled")
     except Exception as e:
