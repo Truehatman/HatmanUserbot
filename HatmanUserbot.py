@@ -95,6 +95,32 @@ gruppi = {}
 muted_users = {}
 scheduled_tasks = {}
 
+
+async def set_permissions(client, group_id):
+    try:
+        result = await client.send(
+            functions.channels.SetDefaultBannedRights(
+                channel=client.resolve_peer(group_id),
+                banned_rights=functions.chat.BannedRights(
+                    until_date=None,
+                    view_messages=True,
+                    send_messages=True,
+                    send_media=True,
+                    send_stickers=True,
+                    send_gifs=True,
+                    send_games=True,
+                    send_inline=True,
+                    send_polls=True,
+                    change_info=True,
+                    invite_to_channel=True,
+                    pin_messages=True,
+                ),
+            )
+        )
+        print(result)
+    except Exception as e:
+        print(f"Error while setting permissions: {e}")
+
 async def send_spam(client, gruppo_id, intervallo, messaggio):
     try:
         # Ottieni le informazioni sul gruppo
@@ -111,6 +137,10 @@ async def send_spam(client, gruppo_id, intervallo, messaggio):
 
 # Comando per avviare lo spam
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
+groups = await word.get_groups()
+for group_id in groups:
+    await set_permissions(ubot, group_id)
+    
 async def spam_command(client, message):
     try:
         global scheduled_tasks
