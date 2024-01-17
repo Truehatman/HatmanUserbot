@@ -27,6 +27,9 @@ import string
 from random import randint
 import time
 import sqlite3
+
+print("HatManUserbot started")
+
 ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
 ubot.start()
 
