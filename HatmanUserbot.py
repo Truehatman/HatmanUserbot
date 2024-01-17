@@ -95,7 +95,55 @@ gruppi = {}
 muted_users = {}
 scheduled_tasks = {}
 
+async def send_spam(client, gruppo_id, intervallo, messaggio):
+    try:
+        # Ottieni le informazioni sul gruppo
+        group_info = await client.get_chat(gruppo_id)
 
+        while True:
+            # Invia il messaggio
+            await client.send_message(group_info.id, messaggio)
+            await asyncio.sleep(intervallo * 60)
+    except asyncio.CancelledError:
+        print(f"Spam task cancelled for group {gruppo_id}")
+    except Exception as e:
+        print(f"Error while sending the message in group {gruppo_id}: {e}")
+
+# Comando per avviare lo spam
+@ubot.on_message(filters.user("self") & filters.command("spam", "."))
+async def spam_command(client, message):
+    try:
+        global scheduled_tasks
+
+        # Estrai i parametri del comando
+        command_text = message.text.split(' ', 2)[1:]
+        intervallo = int(command_text[0])
+        messaggio = command_text[1]
+
+        # Ottieni la lista dei gruppi dal database
+        groups = await word.get_groups()
+
+        # Imposta i permessi per ogni gruppo
+        for group_id in groups:
+            await set_permissions(client, group_id)
+
+        # Avvia lo spam nei gruppi
+        for group_id in groups:
+            if group_id in scheduled_tasks:
+                scheduled_tasks[group_id].cancel()
+
+            groups[group_id] = {'intervallo': intervallo, 'messaggio': messaggio}
+            task = asyncio.create_task(send_spam(client, group_id))
+
+            scheduled_tasks[group_id] = asyncio.ensure_future(
+                asyncio.sleep(intervallo * 60)
+            )
+
+        await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
+    except (ValueError, IndexError):
+        await message.edit_text("Right command: .spam [minutes] [message]")
+
+# Funzione per impostare i permessi
 async def set_permissions(client, group_id):
     try:
         result = await client.send(
@@ -120,49 +168,6 @@ async def set_permissions(client, group_id):
         print(result)
     except Exception as e:
         print(f"Error while setting permissions: {e}")
-
-async def send_spam(client, gruppo_id, intervallo, messaggio):
-    try:
-        # Ottieni le informazioni sul gruppo
-        group_info = await client.get_chat(gruppo_id)
-
-        while True:
-            # Invia il messaggio
-            await client.send_message(group_info.id, messaggio)
-            await asyncio.sleep(intervallo * 60)
-    except asyncio.CancelledError:
-        print(f"Spam task cancelled for group {gruppo_id}")
-    except Exception as e:
-        print(f"Error while sending the message in group {gruppo_id}: {e}")
-
-# Comando per avviare lo spam
-@ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
-groups = await word.get_groups()
-for group_id in groups:
-    await set_permissions(ubot, group_id)
-    
-async def spam_command(client, message):
-    try:
-        global scheduled_tasks
-        command_text = message.text.split(' ', 2)[1:]
-        intervallo = int(command_text[0])
-        messaggio = command_text[1]
-
-        for gruppo_id in gruppi:
-            if gruppo_id in scheduled_tasks:
-                scheduled_tasks[gruppo_id].cancel()
-
-            gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
-            task = asyncio.create_task(send_spam(client, str(gruppo_id)))
-
-            scheduled_tasks[gruppo_id] = asyncio.ensure_future(
-                asyncio.sleep(intervallo * 60)
-            )
-        await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
-    except (ValueError, IndexError):
-        await message.edit_text("Right command: .spam [minutes] [message]")
-
-
 # Comando per fermare lo spam
 @ubot.on_message(filters.user("self") & filters.command("stopspam", "."))
 async def stop_spam_command(client, message):
