@@ -38,13 +38,16 @@ ignore = []
 class Database:
     def __init__(self, file_name: str):
         self.database = file_name
-        if not os.path.exists(file_name):
-            with open(file_name, "w") as f:
-                f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}))
+        if os.path.exists(file_name) == False:
+            f = open(file_name, "a+")
+            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}))
+            f.close()
 
     async def save(self, update: dict):
-        with open(self.database, "w") as f:
-            f.write(json.dumps(update))
+        os.remove(self.database)
+        f = open(self.database, "a+")
+        f.write(json.dumps(update))
+        f.close()
 
     async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
         update = json.load(open(self.database))
@@ -52,18 +55,24 @@ class Database:
         gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
         await self.save(update)
         return gruppi[chat_id]
-
-    async def del_group(self, chat_id: int):
+        
+    async def del_group(self, chat_id: Union[int, str]):
         try:
             chat_id_str = str(chat_id)
             update = json.load(open(self.database))
             gruppi = update.setdefault("gruppi", {})
 
+            print(f"Before deletion - Groups: {gruppi}")
+
             if chat_id_str in gruppi:
                 del gruppi[chat_id_str]
                 await self.save(update)
+
+                print(f"After deletion - Groups: {gruppi}")
+
                 return True, chat_id_str
             else:
+                print(f"Group ID {chat_id_str} not found in the list.")
                 return False, chat_id_str
         except Exception as e:
             print(f"Error during del_group: {e}")
@@ -75,17 +84,6 @@ class Database:
         return gruppi
 
 word = Database("word.json")
-
-async def send_spam(client, gruppi):
-    try:
-        while True:
-            for gruppo_id, group_data in gruppi.items():
-                await client.send_message(gruppo_id, group_data['messaggio'])
-            await asyncio.sleep(group_data['intervallo'] * 60)
-    except asyncio.CancelledError:
-        print("Spam task cancelled")
-    except Exception as e:
-        print(f"Error while sending the message: {e}")
 
 paypal_link = None
 litecoin_link = None
@@ -187,7 +185,6 @@ async def del_group_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
-# Aggiungi o sostituisci questo blocco di codice per i nuovi comandi .spam e .stopspam
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
@@ -196,39 +193,45 @@ async def spam_command(client, message):
         intervallo = int(command_text[0])
         messaggio = command_text[1]
 
-        # Memorizza il nuovo intervallo e messaggio
-        for gruppo_id, group_data in gruppi.items():
+        for gruppo_id in gruppi:
+            if gruppo_id in scheduled_tasks:
+                scheduled_tasks[gruppo_id].cancel()
+
             gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
+            task = asyncio.create_task(send_spam(client, gruppo_id))
 
-        # Cancella i task precedenti
-        for gruppo_id in scheduled_tasks:
-            scheduled_tasks[gruppo_id].cancel()
-
-        # Avvia il nuovo task
-        task = asyncio.create_task(send_spam(client, gruppi))
-        scheduled_tasks = {gruppo_id: task for gruppo_id, group_data in gruppi.items()}
-
+            scheduled_tasks[gruppo_id] = asyncio.ensure_future(
+                asyncio.sleep(intervallo * 60)
+            )
         await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
 
-@ubot.on_message(filters.user("self") & filters.command("stopspam", prefixes="."))
+@ubot.on_message(filters.command("stopspam", prefixes="."))
 async def stop_spam_command(client, message):
     try:
         global scheduled_tasks
+        for gruppo_id in gruppi:
+            if gruppo_id in scheduled_tasks:
+                scheduled_tasks[gruppo_id].cancel()
+                await asyncio.sleep(1)  # Aggiunto per evitare sovrapposizioni nella cancellazione
+                del scheduled_tasks[gruppo_id]
 
-        # Annulla tutti i task di spam attivi
-        for gruppo_id, task in scheduled_tasks.items():
-            task.cancel()
-
-        # Pulisce il dizionario dei task
-        scheduled_tasks = {}
-
-        await message.edit_text("Spam stopped.")
+        await message.edit_text("Spam stopped successfully.")
     except Exception as e:
         print(f"Error while stopping spam: {e}")
-        await message.edit_text("Error while stopping spam.")
-        
+        await message.edit_text("Error while stopping spam")
+
+async def send_spam(client, gruppo_id):
+    try:
+        while True:
+            await client.send_message(gruppo_id, gruppi[gruppo_id]['messaggio'])
+            await asyncio.sleep(gruppi[gruppo_id]['intervallo'] * 60)
+    except asyncio.CancelledError:
+        print(f"Spam task cancelled for group {gruppo_id}")
+    except Exception as e:
+        print(f"Error while sending the message in group {gruppo_id}: {e}")
+
 @ubot.on_message(filters.user("self") & filters.command("ppset", "."))
 async def set_paypal_link(client, message):
     global paypal_link
@@ -334,11 +337,12 @@ async def unmute_user(client, message):
 @ubot.on_message(filters.text)
 async def delete_muted_messages(client, message):
     try:
-        # Verifica se l'utente è muteato e se il mittente è valido
+        # Verifica se l'utente Ã¨ muteato e se il mittente Ã¨ valido
         if message.from_user and message.from_user.id in muted_users:
             # Elimina il messaggio
             await message.delete()
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
+
 
 idle()
