@@ -187,15 +187,16 @@ async def del_group_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
-async def send_spam(client, gruppo_id, messaggio, intervallo):
+async def send_spam(client, gruppi):
     try:
         while True:
-            await client.send_message(gruppo_id, messaggio)
-            await asyncio.sleep(intervallo * 60)
+            for gruppo_id, group_data in gruppi.items():
+                await client.send_message(gruppo_id, group_data['messaggio'])
+            await asyncio.sleep(group_data['intervallo'] * 60)
     except asyncio.CancelledError:
-        print(f"Spam task cancelled for group {gruppo_id}")
+        print("Spam task cancelled")
     except Exception as e:
-        print(f"Error while sending the message in group {gruppo_id}: {e}")
+        print(f"Error while sending the message: {e}")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
@@ -213,33 +214,14 @@ async def spam_command(client, message):
         for gruppo_id in scheduled_tasks:
             scheduled_tasks[gruppo_id].cancel()
 
-        # Avvia i nuovi task
-        new_scheduled_tasks = {}
-        for gruppo_id, group_data in gruppi.items():
-            task = asyncio.create_task(send_spam(client, gruppo_id, group_data['messaggio'], group_data['intervallo']))
-            new_scheduled_tasks[gruppo_id] = task
-
-        # Assegna la nuova lista di task attivi
-        scheduled_tasks = new_scheduled_tasks
+        # Avvia il nuovo task
+        task = asyncio.create_task(send_spam(client, gruppi))
+        scheduled_tasks = {gruppo_id: task for gruppo_id, group_data in gruppi.items()}
 
         await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
 
-@ubot.on_message(filters.user("self") & filters.command("stopspam", prefixes="."))
-async def stop_spam_command(client, message):
-    try:
-        global scheduled_tasks
-        for gruppo_id in gruppi:
-            if gruppo_id in scheduled_tasks:
-                scheduled_tasks[gruppo_id].cancel()
-                await asyncio.sleep(1)  # Aggiunto per evitare sovrapposizioni nella cancellazione
-                del scheduled_tasks[gruppo_id]
-
-        await message.edit_text("Spam stopped successfully.")
-    except Exception as e:
-        print(f"Error while stopping spam: {e}")
-        await message.edit_text("Error while stopping spam")
 
 
 
