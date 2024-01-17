@@ -133,16 +133,21 @@ async def spam_command(client, message):
         args = message.text.split()
         intervallo = int(args[1])
         messaggio = " ".join(args[2:])
-
+        
         # Imposta i permessi per ogni gruppo
         for group_id in gruppi:
-            await set_permissions(client, group_id)
+            # Rimuovi il segno meno e converte in intero positivo
+            group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
+
+            await set_permissions(client, group_id_positive)
 
         # Avvia lo spam in ogni gruppo
         for group_id in gruppi:
-            positive_group_id = abs(group_id)
-            task = asyncio.create_task(send_spam(client, positive_group_id, intervallo, messaggio))
-            scheduled_tasks[positive_group_id] = task
+            # Rimuovi il segno meno e converte in intero positivo
+            group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
+
+            task = asyncio.create_task(send_spam(client, group_id_positive, intervallo, messaggio))
+            scheduled_tasks[group_id_positive] = task
 
         await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
