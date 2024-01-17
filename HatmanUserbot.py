@@ -200,6 +200,7 @@ async def del_group_command(client, message):
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
+        global scheduled_tasks
         command_text = message.text.split(' ', 2)[1:]
         intervallo = int(command_text[0])
         messaggio = command_text[1]
@@ -241,6 +242,7 @@ async def stop_spam_command(client, message):
     except Exception as e:
         print(f"Error while stopping spam: {e}")
         await message.edit_text("Error while stopping spam")
+
 
 @ubot.on_message(filters.user("self") & filters.command("ppset", "."))
 async def set_paypal_link(client, message):
