@@ -117,15 +117,37 @@ async def set_permissions(client, group_id):
 
 
 # Funzione per inviare spam
-async def send_spam(client, group_id, intervallo, messaggio):
+@ubot.on_message(filters.user("self") & filters.command("spam", "."))
+async def spam_command(client, message):
     try:
-        while True:
-            await client.send_message(chat_id=group_id, text=messaggio)
-            await asyncio.sleep(intervallo)
-    except asyncio.CancelledError:
-        print(f"Spam task for group {group_id} cancelled.")
+        args = message.text.split()
+        if len(args) == 3:
+            intervallo_minuti = int(args[1])
+            intervallo_secondi = intervallo_minuti * 60
+            messaggio = " ".join(args[2:])
+            
+            groups = await word.get_groups()
+            for group_id, group_data in groups.items():
+                try:
+                    # Imposta i permessi prima di iniziare lo spam
+                    await set_permissions(client, group_id)
+                    
+                    # Invia il messaggio di spam
+                    await client.send_message(chat_id=group_id, text=messaggio)
+                    
+                    # Crea e avvia il task di spam con l'intervallo convertito
+                    task = asyncio.create_task(send_spam(client, group_id, intervallo_secondi, messaggio))
+                    scheduled_tasks[group_id] = task
+                except Exception as e:
+                    print(f"Error in group {group_id}: {e}")
+
+            await message.edit_text(f"Spam started successfully in all groups.")
+        else:
+            await message.edit_text("Invalid command syntax. Use: .spam <intervallo_minuti> <messaggio>")
     except Exception as e:
-        print(f"Error while sending spam in group {group_id}: {e}")
+        print(f"Error while starting spam: {e}")
+        await message.edit_text("Error while starting spam.")
+
 
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
