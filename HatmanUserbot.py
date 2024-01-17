@@ -65,7 +65,6 @@ class Database:
         else:
             return False
 
-
 word = Database("word.json")
 
 paypal_link = None
