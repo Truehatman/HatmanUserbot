@@ -56,7 +56,7 @@ class Database:
         await self.save(update)
         return gruppi[chat_id]
         
-   async def del_group(self, chat_id: Union[int, str]):
+    async def del_group(self, chat_id: Union[int, str]):
         try:
             chat_id_str = str(chat_id)
             update = json.load(open(self.database))
