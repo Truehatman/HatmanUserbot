@@ -1,6 +1,6 @@
 from sched import scheduler
 from pyrogram import Client, filters, idle
-from pyrogram functions
+from pyrogram import functions
 from pyrogram.raw.functions.messages import StartBot, DeleteHistory, InstallStickerSet
 from pyrogram.raw.functions.help import GetUserInfo
 from pyrogram.errors import * 
