@@ -128,13 +128,26 @@ async def add_group_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .addgroup [id_group] or [username]")
 
+@ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
+async def group_list_command(client, message):
+    try:
+        groups = await word.get_groups()
+        if groups:
+            group_list = "\n".join([f"{chat_id}: {group_data}" for chat_id, group_data in groups.items()])
+            await message.edit_text(f"Group list:\n{group_list}")
+        else:
+            await message.edit_text("No groups found.")
+    except Exception as e:
+        print(f"Error while fetching group list: {e}")
+        await message.edit_text("Error while fetching group list.")
+
 @ubot.on_message(filters.user("self") & filters.command("delgroup", prefixes="."))
 async def del_group_command(client, message):
     try:
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
 
-        # Ottieni l'ID del gruppo a partire dal suo username o ID
+        # Cerca il gruppo utilizzando ID o username
         try:
             chat = await client.get_chat(chat_id=command_text)
             gruppo_id = chat.id
@@ -154,18 +167,6 @@ async def del_group_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
-@ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
-async def group_list_command(client, message):
-    try:
-        groups = await word.get_groups()
-        if groups:
-            group_list = "\n".join([f"{chat_id}: {group_data}" for chat_id, group_data in groups.items()])
-            await message.edit_text(f"Group list:\n{group_list}")
-        else:
-            await message.edit_text("No groups found.")
-    except Exception as e:
-        print(f"Error while fetching group list: {e}")
-        await message.edit_text("Error while fetching group list.")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
