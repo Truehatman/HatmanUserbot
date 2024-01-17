@@ -147,26 +147,31 @@ async def del_group_command(client, message):
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
 
-        # Cerca il gruppo utilizzando ID o username
+        # Verifica se il testo è un ID numerico o un username
         try:
-            chat = await client.get_chat(chat_id=command_text)
-            gruppo_id = chat.id
+            chat_id = int(command_text)
         except ValueError:
-            gruppo_id = None
+            # Se non è un ID numerico, cerca di ottenere l'ID dall'username
+            try:
+                chat = await client.get_chat(command_text)
+                chat_id = chat.id
+            except ValueError:
+                chat_id = None
+
+        # Verifica se l'ID del gruppo è già nella lista
+        if chat_id is not None and chat_id not in gruppi:
+            await message.edit_text(f"Group {chat_id} is not in the list.")
+            return
 
         # Rimuovi il gruppo dalla lista e dal database
-        if gruppo_id is not None:
-            if gruppo_id in gruppi:
-                await word.del_group(gruppo_id)
-                del gruppi[gruppo_id]
-                await message.edit_text(f"Group {gruppo_id} removed from the list and database.")
-            else:
-                await message.edit_text(f"Group {gruppo_id} is not in the list.")
+        if chat_id is not None:
+            await word.del_group(chat_id)
+            del gruppi[chat_id]
+            await message.edit_text(f"Group {chat_id} removed from the list and database.")
         else:
             await message.edit_text("Invalid group ID or username.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .delgroup [id_group] or [username]")
-
 
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
