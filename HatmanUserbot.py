@@ -117,6 +117,7 @@ async def set_permissions(client, group_id):
 
 
 # Funzione per inviare spam
+# Funzione per inviare spam
 async def send_spam(client, group_id, intervallo, messaggio):
     try:
         while True:
@@ -126,6 +127,9 @@ async def send_spam(client, group_id, intervallo, messaggio):
             await asyncio.sleep(intervallo * 60)  # Converti intervallo da minuti a secondi
     except asyncio.CancelledError:
         print(f"Spam task for group {group_id} cancelled.")
+    except pyrogram.errors.FloodWait as e:
+        print(f"FloodWait error in group {group_id}. Waiting for {e.x} seconds.")
+        await asyncio.sleep(e.x)
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
