@@ -91,7 +91,7 @@ word = Database("word.json")
 paypal_link = None
 litecoin_link = None
 
-gruppi = {}
+gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
