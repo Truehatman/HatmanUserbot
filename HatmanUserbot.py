@@ -211,7 +211,22 @@ async def spam_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
 
+@ubot.on_message(filters.user("self") & filters.command("stopspam", prefixes="."))
+async def stop_spam_command(client, message):
+    try:
+        global scheduled_tasks
 
+        # Annulla tutti i task di spam attivi
+        for gruppo_id, task in scheduled_tasks.items():
+            task.cancel()
+
+        # Pulisce il dizionario dei task
+        scheduled_tasks = {}
+
+        await message.edit_text("Spam stopped.")
+    except Exception as e:
+        print(f"Error while stopping spam: {e}")
+        await message.edit_text("Error while stopping spam.")
 
 
 @ubot.on_message(filters.user("self") & filters.command("ppset", "."))
