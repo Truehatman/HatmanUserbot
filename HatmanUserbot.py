@@ -116,6 +116,36 @@ async def set_permissions(client, group_id):
         print(f"Error while setting permissions: {e}")
 
 
+# Comando per avviare lo spam
+@ubot.on_message(filters.user("self") & filters.command("spam", "."))
+async def spam_command(client, message):
+    try:
+        args = message.text.split()
+        intervallo = int(args[1])
+        messaggio = " ".join(args[2:])
+        
+        # Imposta i permessi per ogni gruppo
+        for group_id in gruppi:
+            # Rimuovi il segno meno e converte in intero positivo
+            group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
+
+            await set_permissions(client, group_id_positive)
+
+        # Avvia lo spam in ogni gruppo
+        for group_id in gruppi:
+            # Rimuovi il segno meno e converte in intero positivo
+            group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
+
+            print(f"Starting spam in group {group_id_positive} - Interval: {intervallo} minutes - Message: {messaggio}")
+            task = asyncio.create_task(send_spam(client, group_id_positive, intervallo, messaggio))
+            scheduled_tasks[group_id_positive] = task
+
+        await message.edit_text(f"Spam started successfully in all groups.")
+    except Exception as e:
+        print(f"Error while starting spam: {e}")
+        await message.edit_text("Error while starting spam.")
+
+
 # Funzione per inviare spam
 async def send_spam(client, group_id, intervallo, messaggio):
     try:
@@ -130,35 +160,6 @@ async def send_spam(client, group_id, intervallo, messaggio):
         print(f"Spam task for group {group_id} cancelled.")
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
-
-# Comando per avviare lo spam
-@ubot.on_message(filters.user("self") & filters.command("spam", "."))
-async def spam_command(client, message):
-    try:
-        args = message.text.split()
-        intervallo = int(args[1])
-        messaggio = " ".join(args[2:])
-        print(f"Intervallo: {intervallo}, Messaggio: {messaggio}")
-        
-        # Imposta i permessi per ogni gruppo
-        for group_id in gruppi:
-            # Rimuovi il segno meno e converte in intero positivo
-            group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
-
-            await set_permissions(client, group_id_positive)
-
-        # Avvia lo spam in ogni gruppo
-        for group_id in gruppi:
-            # Rimuovi il segno meno e converte in intero positivo
-            group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
-
-            task = asyncio.create_task(send_spam(client, group_id_positive, intervallo, messaggio))
-            scheduled_tasks[group_id_positive] = task
-
-        await message.edit_text(f"Spam started successfully in all groups.")
-    except Exception as e:
-        print(f"Error while starting spam: {e}")
-        await message.edit_text("Error while starting spam.")
 
 
 # Comando per fermare lo spam
