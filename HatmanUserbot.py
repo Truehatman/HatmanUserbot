@@ -120,6 +120,7 @@ async def set_permissions(client, group_id):
 async def send_spam(client, group_id, intervallo, messaggio):
     try:
         while True:
+            print(f"Sending spam to group {group_id} - Message: {messaggio}")
             await client.send_message(chat_id=group_id, text=messaggio)
             await asyncio.sleep(intervallo * 60)  # Converti intervallo da minuti a secondi
     except asyncio.CancelledError:
