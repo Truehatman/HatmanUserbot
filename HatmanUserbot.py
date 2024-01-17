@@ -133,7 +133,7 @@ async def group_list_command(client, message):
     try:
         groups = await word.get_groups()
         if groups:
-            group_list = "\n".join([f"{chat_id}: {group_data}" for chat_id, group_data in groups.items()])
+            group_list = "\n".join([f"{chat_id} (@{group_data['username']})" if 'username' in group_data else f"{chat_id}" for chat_id, group_data in groups.items()])
             await message.edit_text(f"Group list:\n{group_list}")
         else:
             await message.edit_text("No groups found.")
@@ -163,14 +163,14 @@ async def del_group_command(client, message):
                 pass
 
         # Verifica se l'ID del gruppo è già nella lista
-        if chat_id is not None and chat_id not in gruppi:
+        if chat_id is not None and str(chat_id) not in gruppi:
             await message.edit_text(f"Group {chat_id} is not in the list.")
             return
 
         # Rimuovi il gruppo dalla lista e dal database
         if chat_id is not None:
-            await word.del_group(chat_id)
-            del gruppi[chat_id]
+            await word.del_group(str(chat_id))
+            del gruppi[str(chat_id)]
             await message.edit_text(f"Group {chat_id} removed from the list and database.")
         else:
             await message.edit_text("Invalid group ID or username.")
