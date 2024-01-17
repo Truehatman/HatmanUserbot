@@ -134,6 +134,7 @@ async def spam_command(client, message):
         args = message.text.split()
         intervallo = int(args[1])
         messaggio = " ".join(args[2:])
+        print(f"Intervallo: {intervallo}, Messaggio: {messaggio}")
         
         # Imposta i permessi per ogni gruppo
         for group_id in gruppi:
