@@ -135,7 +135,7 @@ async def add_group_command(client, message):
         # Aggiungi il gruppo al database
         if gruppo_id is not None:
             group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="")
-            await message.edit_text(f"Group {gruppo_id} added to the list with settings: {group_settings}")
+            await message.edit_text(f"Group {gruppo_id} added to the list ")
         else:
             await message.edit_text("Invalid group ID or username.")
     except (ValueError, IndexError):
