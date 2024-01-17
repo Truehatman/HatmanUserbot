@@ -162,16 +162,14 @@ async def del_group_command(client, message):
             except Exception:
                 pass
 
-        # Verifica se l'ID del gruppo è già nella lista
-        if chat_id is not None and str(chat_id) not in gruppi:
-            await message.edit_text(f"Group {chat_id} is not in the list.")
-            return
-
         # Rimuovi il gruppo dalla lista e dal database
         if chat_id is not None:
-            await word.del_group(str(chat_id))
-            del gruppi[str(chat_id)]
-            await message.edit_text(f"Group {chat_id} removed from the list and database.")
+            await word.del_group(chat_id)
+            if str(chat_id) in gruppi:
+                del gruppi[str(chat_id)]
+                await message.edit_text(f"Group {chat_id} removed from the list and database.")
+            else:
+                await message.edit_text(f"Group {chat_id} is not in the list.")
         else:
             await message.edit_text("Invalid group ID or username.")
     except (ValueError, IndexError):
