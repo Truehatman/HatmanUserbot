@@ -1,6 +1,5 @@
 from sched import scheduler
 from pyrogram import Client, filters, idle
-from pyrogram import functions as pyro_functions
 from pyrogram.raw.functions.messages import StartBot, DeleteHistory, InstallStickerSet
 from pyrogram.raw.functions.help import GetUserInfo
 from pyrogram.errors import * 
@@ -99,9 +98,9 @@ scheduled_tasks = {}
 async def set_permissions(client, group_id):
     try:
         await client.send(
-            pyro_functions.channels.SetDefaultBannedRights(
+            Client.functions.channels.SetDefaultBannedRights(
                 channel=client.resolve_peer(group_id),
-                banned_rights=pyro_functions.chat.BannedRights(
+                banned_rights=Client.functions.chat.BannedRights(
                     until_date=None,
                     view_messages=True,
                     send_messages=True,
