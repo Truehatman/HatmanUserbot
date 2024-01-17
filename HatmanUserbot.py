@@ -1,5 +1,5 @@
 from sched import scheduler
-from pyrogram import Client, filters, idle
+from pyrogram import Client, filters, idle, functions
 from pyrogram.raw.functions.messages import StartBot, DeleteHistory, InstallStickerSet
 from pyrogram.raw.functions.help import GetUserInfo
 from pyrogram.errors import * 
@@ -95,21 +95,39 @@ gruppi = {}
 muted_users = {}
 scheduled_tasks = {}
 
-async def send_spam(client, gruppo_id, intervallo, messaggio):
+async def set_permissions(client, group_id):
     try:
-        # Ottieni le informazioni sul gruppo
-        group_info = await client.get_chat(gruppo_id)
-
-        while True:
-            # Invia il messaggio
-            await client.send_message(group_info.id, messaggio)
-            await asyncio.sleep(intervallo * 60)
-    except asyncio.CancelledError:
-        print(f"Spam task cancelled for group {gruppo_id}")
+        await client.send(
+            functions.channels.SetDefaultBannedRights(
+                channel=client.resolve_peer(group_id),
+                banned_rights=functions.chat.BannedRights(
+                    until_date=None,
+                    view_messages=True,
+                    send_messages=True,
+                    send_media=True,
+                    send_stickers=True,
+                    send_gifs=True,
+                    send_games=True,
+                    send_inline=True,
+                    send_polls=True,
+                    change_info=True,
+                    invite_to_channel=True,
+                    pin_messages=True,
+                ),
+            )
+        )
     except Exception as e:
-        print(f"Error while sending the message in group {gruppo_id}: {e}")
+        print(f"Error while setting permissions: {e}")
 
-# Comando per avviare lo spam
+# Funzione per inviare spam
+async def send_spam(client, group_id, intervallo, messaggio):
+    try:
+        while True:
+            await client.send_message(group_id, messaggio)
+            await asyncio.sleep(intervallo * 60)
+    except Exception as e:
+        print(f"Error while sending spam in group {group_id}: {e}")
+
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client, message):
     try:
@@ -133,41 +151,14 @@ async def spam_command(client, message):
                 scheduled_tasks[group_id].cancel()
 
             groups[group_id] = {'intervallo': intervallo, 'messaggio': messaggio}
-            task = asyncio.create_task(send_spam(client, group_id))
+            task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
 
-            scheduled_tasks[group_id] = asyncio.ensure_future(
-                asyncio.sleep(intervallo * 60)
-            )
+            scheduled_tasks[group_id] = task
 
         await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
-
-# Funzione per impostare i permessi
-async def set_permissions(client, group_id):
-    try:
-        result = await client.send(
-            functions.channels.SetDefaultBannedRights(
-                channel=client.resolve_peer(group_id),
-                banned_rights=functions.chat.BannedRights(
-                    until_date=None,
-                    view_messages=True,
-                    send_messages=True,
-                    send_media=True,
-                    send_stickers=True,
-                    send_gifs=True,
-                    send_games=True,
-                    send_inline=True,
-                    send_polls=True,
-                    change_info=True,
-                    invite_to_channel=True,
-                    pin_messages=True,
-                ),
-            )
-        )
-        print(result)
-    except Exception as e:
-        print(f"Error while setting permissions: {e}")
+        
 # Comando per fermare lo spam
 @ubot.on_message(filters.user("self") & filters.command("stopspam", "."))
 async def stop_spam_command(client, message):
