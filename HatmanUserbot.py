@@ -43,24 +43,23 @@ class Database:
         self.database = file_name
         if not os.path.exists(file_name):
             with open(file_name, "w") as f:
-                f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}))
+                # Inizializza il file JSON se non esiste
+                json.dump({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}, f)
 
     async def save(self, update: dict):
-        os.remove(self.database)
         with open(self.database, "w") as f:
-            f.write(json.dumps(update))
+            # Scrivi nel file JSON
+            json.dump(update, f)
 
-    async def add_group(self, chat_id: int, intervallo: int, messaggio: str, username: str = None):
+    async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
         update = json.load(open(self.database))
         gruppi = update.setdefault("gruppi", {})
-
-        # Aggiungi il gruppo al dizionario
-        gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": username}
-
+        chat_id_str = str(chat_id)
+        gruppi[chat_id_str] = {"intervallo": intervallo, "messaggio": messaggio}
         await self.save(update)
-        return gruppi[chat_id]
+        return gruppi[chat_id_str]
 
-    async def del_group(self, chat_id: Union[int, str]):
+    async def del_group(self, chat_id: int):
         try:
             chat_id_str = str(chat_id)
             update = json.load(open(self.database))
@@ -180,7 +179,7 @@ async def add_group_command(client, message):
 
         # Aggiungi il gruppo al database
         if gruppo_id is not None:
-            group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="", username="nome_gruppo")
+            group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="")
             await message.edit_text(f"Group {gruppo_id} added to the list ")
         else:
             await message.edit_text("Invalid group ID or username.")
@@ -192,7 +191,7 @@ async def group_list_command(client, message):
     try:
         groups = await word.get_groups()
         if groups:
-            group_list = "\n".join([f"{str(chat_id)} (@{group_data['username']})" if 'username' in group_data else str(chat_id) for chat_id, group_data in groups.items()])
+            group_list = "\n".join([f"{chat_id} (@{group_data['username']})" if 'username' in group_data else f"{chat_id}" for chat_id, group_data in groups.items()])
             await message.edit_text(f"Group list:\n{group_list}")
         else:
             await message.edit_text("No groups found.")
