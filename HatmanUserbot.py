@@ -54,10 +54,7 @@ class Database:
         gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
         await self.save(update)
         return gruppi[chat_id]
-
-    class Database:
-    # ...
-
+        
     async def del_group(self, chat_id: Union[int, str]):
         try:
             chat_id_str = str(chat_id)
