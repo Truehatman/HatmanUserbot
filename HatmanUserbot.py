@@ -83,6 +83,13 @@ class Database:
         gruppi = update.setdefault("gruppi", {})
         return gruppi
 
+    async def send_spam(client, gruppo_id, messaggio):
+    try:
+        # Invia il messaggio al gruppo utilizzando il client Pyrogram
+        await client.send_message(gruppo_id, messaggio)
+    except Exception as e:
+        print(f"Error sending spam to group {gruppo_id}: {e}")
+        
 word = Database("word.json")
 
 paypal_link = None
@@ -200,18 +207,18 @@ async def spam_command(client, message):
             gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
 
             # Crea un nuovo task asincrono per ogni invio di spam
-            async def spam_task(client, gruppo_id):
+            async def spam_task(gruppo_id, messaggio):
                 try:
                     while True:
                         print(f"Sending spam to group {gruppo_id}")
-                        await send_spam(client, gruppo_id)
+                        await send_spam(client, gruppo_id, messaggio)
                         print(f"Spam sent to group {gruppo_id}")
                         await asyncio.sleep(intervallo * 60)
                 except Exception as e:
                     print(f"Error in spam_task for group {gruppo_id}: {e}")
 
             # Avvia il task appena creato
-            task = asyncio.create_task(spam_task(client, gruppo_id))
+            task = asyncio.create_task(spam_task(gruppo_id, messaggio))
             scheduled_tasks[gruppo_id] = task
 
         await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
