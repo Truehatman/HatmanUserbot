@@ -147,16 +147,20 @@ async def del_group_command(client, message):
         # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
 
-        # Verifica se il testo è un ID numerico o un username
+        # Cerca di ottenere direttamente l'ID del gruppo senza sollevare eccezioni
+        chat_id = None
+
         try:
             chat_id = int(command_text)
         except ValueError:
-            # Se non è un ID numerico, cerca di ottenere l'ID dall'username
+            pass
+
+        if chat_id is None:
             try:
                 chat = await client.get_chat(command_text)
                 chat_id = chat.id
-            except ValueError:
-                chat_id = None
+            except Exception:
+                pass
 
         # Verifica se l'ID del gruppo è già nella lista
         if chat_id is not None and chat_id not in gruppi:
