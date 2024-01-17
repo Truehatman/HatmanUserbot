@@ -188,6 +188,8 @@ async def send_spam(client, gruppi):
     except Exception as e:
         print(f"Error while sending the message: {e}")
 
+scheduled_tasks = {}  # Aggiunto per inizializzare la variabile
+
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
@@ -201,8 +203,8 @@ async def spam_command(client, message):
             gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
 
         # Cancella i task precedenti
-        for gruppo_id in scheduled_tasks:
-            scheduled_tasks[gruppo_id].cancel()
+        for gruppo_id, task in scheduled_tasks.items():
+            task.cancel()
 
         # Avvia il nuovo task
         task = asyncio.create_task(send_spam(client, gruppi))
