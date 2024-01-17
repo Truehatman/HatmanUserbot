@@ -36,7 +36,7 @@ ignore = []
 
 # Addword
 class Database:
-   def __init__(self, file_name: str):
+    def __init__(self, file_name: str):
         self.database = file_name
         if not os.path.exists(file_name):
             with open(file_name, "w") as f:
@@ -75,6 +75,7 @@ class Database:
         return gruppi
 
 word = Database("word.json")
+
 
 paypal_link = None
 litecoin_link = None
