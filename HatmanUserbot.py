@@ -9,6 +9,7 @@ from pyrogram.raw.functions.account import UpdateNotifySettings
 from pyrogram.raw.base import InputPeer
 from pyrogram.raw.types import InputPeerNotifySettings, InputNotifyPeer, InputPeerChat, Message
 from pyrogram.types import ChatPermissions
+from typing import Union
 import asyncio
 import time
 import asyncio
