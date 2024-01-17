@@ -27,6 +27,8 @@ import string
 from random import randint
 import time
 import sqlite3
+from sqlite3 import OperationalError
+
 ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
 ubot.start()
 
@@ -38,50 +40,46 @@ ignore = []
 class Database:
     def __init__(self, file_name: str):
         self.database = file_name
-        if os.path.exists(file_name) == False:
-            f = open(file_name, "a+")
-            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}))
-            f.close()
+        self.conn = sqlite3.connect(file_name, check_same_thread=False)
+        self.create_table()
 
-    async def save(self, update: dict):
-        os.remove(self.database)
-        f = open(self.database, "a+")
-        f.write(json.dumps(update))
-        f.close()
+    def create_table(self):
+        with self.conn:
+            self.conn.execute("""
+                CREATE TABLE IF NOT EXISTS gruppi (
+                    chat_id INTEGER PRIMARY KEY,
+                    intervallo INTEGER,
+                    messaggio TEXT
+                )
+            """)
 
-    async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
-        update = json.load(open(self.database))
-        gruppi = update.setdefault("gruppi", {})
-        gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
-        await self.save(update)
-        return gruppi[chat_id]
-        
-    async def del_group(self, chat_id: Union[int, str]):
+    def save(self, update: dict):
+        with self.conn:
+            self.conn.execute("DELETE FROM gruppi")
+            self.conn.executemany("INSERT INTO gruppi VALUES (?, ?, ?)", [(k, v['intervallo'], v['messaggio']) for k, v in update.items()])
+
+    def add_group(self, chat_id: int, intervallo: int, messaggio: str):
         try:
-            chat_id_str = str(chat_id)
-            update = json.load(open(self.database))
-            gruppi = update.setdefault("gruppi", {})
+            with self.conn:
+                self.conn.execute("INSERT INTO gruppi VALUES (?, ?, ?)", (chat_id, intervallo, messaggio))
+            return {"intervallo": intervallo, "messaggio": messaggio}
+        except OperationalError as e:
+            print(f"Error during add_group: {e}")
+            return {}
 
-            print(f"Before deletion - Groups: {gruppi}")
-
-            if chat_id_str in gruppi:
-                del gruppi[chat_id_str]
-                await self.save(update)
-
-                print(f"After deletion - Groups: {gruppi}")
-
-                return True, chat_id_str
-            else:
-                print(f"Group ID {chat_id_str} not found in the list.")
-                return False, chat_id_str
-        except Exception as e:
+    def del_group(self, chat_id: int):
+        try:
+            with self.conn:
+                self.conn.execute("DELETE FROM gruppi WHERE chat_id=?", (chat_id,))
+            return True, chat_id
+        except OperationalError as e:
             print(f"Error during del_group: {e}")
             return False, None
 
-    async def get_groups(self):
-        update = json.load(open(self.database))
-        gruppi = update.setdefault("gruppi", {})
-        return gruppi
+    def get_groups(self):
+        with self.conn:
+            cursor = self.conn.execute("SELECT * FROM gruppi")
+            return {row[0]: {"intervallo": row[1], "messaggio": row[2]} for row in cursor}
 
 word = Database("word.json")
 
