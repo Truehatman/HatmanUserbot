@@ -283,8 +283,8 @@ async def unmute_user(client, message):
 @ubot.on_message(filters.text)
 async def delete_muted_messages(client, message):
     try:
-        # Verifica se l'utente è muteato
-        if message.from_user.id in muted_users:
+        # Verifica se l'utente è muteato e se il mittente è valido
+        if message.from_user and message.from_user.id in muted_users:
             # Elimina il messaggio
             await message.delete()
     except Exception as e:
