@@ -70,13 +70,13 @@ class Database:
 
                 print(f"After deletion - Groups: {gruppi}")
 
-                return True
+                return True, chat_id_str
             else:
                 print(f"Group ID {chat_id_str} not found in the list.")
-                return False
+                return False, chat_id_str
         except Exception as e:
             print(f"Error during del_group: {e}")
-            return False
+            return False, None
 
     async def get_groups(self):
         update = json.load(open(self.database))
@@ -176,15 +176,12 @@ async def del_group_command(client, message):
                 pass
 
         # Rimuovi il gruppo dalla lista e dal database
-        if chat_id is not None:
-            await word.del_group(chat_id)
-            if str(chat_id) in gruppi:
-                del gruppi[str(chat_id)]
-                await message.edit_text(f"Group {chat_id} removed from the list and database.")
-            else:
-                await message.edit_text(f"Group {chat_id} is not in the list.")
+        success, removed_group_id = await word.del_group(chat_id)
+        if success:
+            await message.edit_text(f"Group {removed_group_id} successfully removed from the list and database.")
         else:
-            await message.edit_text("Invalid group ID or username.")
+            await message.edit_text(f"Group {removed_group_id} not found in the list.")
+
     except (ValueError, IndexError):
         await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
