@@ -87,12 +87,16 @@ class Database:
         
 word = Database("word.json")
 
-async def send_spam(client, gruppo_id, messaggio):
+async def send_spam(client, gruppo_id):
     try:
-        # Invia il messaggio al gruppo utilizzando il client Pyrogram
-        await client.send_message(gruppo_id, messaggio)
+        while True:
+            await client.send_message(gruppo_id, gruppi[gruppo_id]['messaggio'])
+            await asyncio.sleep(gruppi[gruppo_id]['intervallo'] * 60)
+    except asyncio.CancelledError:
+        print(f"Spam task cancelled for group {gruppo_id}")
     except Exception as e:
-        print(f"Error sending spam to group {gruppo_id}: {e}")
+        print(f"Error while sending the message in group {gruppo_id}: {e}")
+
 
 paypal_link = None
 litecoin_link = None
@@ -201,16 +205,6 @@ async def spam_command(client, message):
         intervallo = int(command_text[0])
         messaggio = command_text[1]
 
-        async def spam_task(client, gruppo_id, messaggio, intervallo):
-            try:
-                while True:
-                    print(f"Sending spam to group {gruppo_id}")
-                    await send_spam(client, gruppo_id, messaggio)
-                    print(f"Spam sent to group {gruppo_id}")
-                    await asyncio.sleep(intervallo * 60)
-            except Exception as e:
-                print(f"Error in spam_task for group {gruppo_id}: {e}")
-
         for gruppo_id in gruppi:
             if gruppo_id in scheduled_tasks:
                 scheduled_tasks[gruppo_id].cancel()
@@ -218,12 +212,13 @@ async def spam_command(client, message):
             gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
 
             # Avvia il task appena creato
-            task = asyncio.create_task(spam_task(client, gruppo_id, messaggio, intervallo))
+            task = asyncio.create_task(send_spam(client, gruppo_id))
             scheduled_tasks[gruppo_id] = task
 
         await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
+
 
 
 @ubot.on_message(filters.command("stopspam", prefixes="."))
