@@ -198,14 +198,21 @@ async def spam_command(client, message):
                 scheduled_tasks[gruppo_id].cancel()
 
             gruppi[gruppo_id] = {'intervallo': intervallo, 'messaggio': messaggio}
-            task = asyncio.create_task(send_spam(client, gruppo_id))
 
-            scheduled_tasks[gruppo_id] = asyncio.ensure_future(
-                asyncio.sleep(intervallo * 60)
-            )
+            # Crea un nuovo task asincrono per ogni invio di spam
+            async def spam_task(client, gruppo_id):
+                while True:
+                    await send_spam(client, gruppo_id)
+                    await asyncio.sleep(intervallo * 60)
+
+            # Avvia il task appena creato
+            task = asyncio.create_task(spam_task(client, gruppo_id))
+            scheduled_tasks[gruppo_id] = task
+
         await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
+
 
 @ubot.on_message(filters.command("stopspam", prefixes="."))
 async def stop_spam_command(client, message):
