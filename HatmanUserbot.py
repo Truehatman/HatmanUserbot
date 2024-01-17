@@ -55,14 +55,29 @@ class Database:
         await self.save(update)
         return gruppi[chat_id]
 
-    async def del_group(self, chat_id: int):
-        update = json.load(open(self.database))
-        gruppi = update.setdefault("gruppi", {})
-        if chat_id in gruppi:
-            del gruppi[chat_id]
-            await self.save(update)
-            return True
-        else:
+    class Database:
+    # ...
+
+    async def del_group(self, chat_id: Union[int, str]):
+        try:
+            chat_id_str = str(chat_id)
+            update = json.load(open(self.database))
+            gruppi = update.setdefault("gruppi", {})
+
+            print(f"Before deletion - Groups: {gruppi}")
+
+            if chat_id_str in gruppi:
+                del gruppi[chat_id_str]
+                await self.save(update)
+
+                print(f"After deletion - Groups: {gruppi}")
+
+                return True
+            else:
+                print(f"Group ID {chat_id_str} not found in the list.")
+                return False
+        except Exception as e:
+            print(f"Error during del_group: {e}")
             return False
 
     async def get_groups(self):
