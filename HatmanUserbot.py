@@ -41,24 +41,25 @@ ignore = []
 class Database:
     def __init__(self, file_name: str):
         self.database = file_name
-        if os.path.exists(file_name) == False:
-            f = open(file_name, "a+")
-            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}))
-            f.close()
+        if not os.path.exists(file_name):
+            with open(file_name, "w") as f:
+                f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}))
 
     async def save(self, update: dict):
         os.remove(self.database)
-        f = open(self.database, "a+")
-        f.write(json.dumps(update))
-        f.close()
+        with open(self.database, "w") as f:
+            f.write(json.dumps(update))
 
-    async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
+    async def add_group(self, chat_id: int, intervallo: int, messaggio: str, username: str = None):
         update = json.load(open(self.database))
         gruppi = update.setdefault("gruppi", {})
-        gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
+
+        # Aggiungi il gruppo al dizionario
+        gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": username}
+
         await self.save(update)
         return gruppi[chat_id]
-        
+
     async def del_group(self, chat_id: Union[int, str]):
         try:
             chat_id_str = str(chat_id)
@@ -187,7 +188,7 @@ async def add_group_command(client, message):
 
         # Aggiungi il gruppo al database
         if gruppo_id is not None:
-            group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="")
+            group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="", username="nome_gruppo")
             await message.edit_text(f"Group {gruppo_id} added to the list ")
         else:
             await message.edit_text("Invalid group ID or username.")
