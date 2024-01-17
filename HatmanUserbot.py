@@ -182,7 +182,7 @@ async def send_spam(client, gruppi):
         while True:
             for gruppo_id, group_data in gruppi.items():
                 await client.send_message(gruppo_id, group_data['messaggio'])
-            await asyncio.sleep(group_data['intervallo'] * 60)
+                await asyncio.sleep(group_data['intervallo'] * 60)
     except asyncio.CancelledError:
         print("Spam task cancelled")
     except Exception as e:
@@ -230,7 +230,7 @@ async def stop_spam_command(client, message):
     except Exception as e:
         print(f"Error while stopping spam: {e}")
         await message.edit_text("Error while stopping spam.")
-
+        
 @ubot.on_message(filters.user("self") & filters.command("ppset", "."))
 async def set_paypal_link(client, message):
     global paypal_link
