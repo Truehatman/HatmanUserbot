@@ -115,12 +115,13 @@ async def set_permissions(client, group_id):
     except Exception as e:
         print(f"Error while setting permissions: {e}")
 
+
 # Funzione per inviare spam
 async def send_spam(client, group_id, intervallo, messaggio):
     try:
         while True:
             await client.send_message(chat_id=group_id, text=messaggio)
-            await asyncio.sleep(intervallo * 60)  # Converti l'intervallo da minuti a secondi
+            await asyncio.sleep(intervallo * 60)  # Converti intervallo da minuti a secondi
     except asyncio.CancelledError:
         print(f"Spam task for group {group_id} cancelled.")
     except Exception as e:
