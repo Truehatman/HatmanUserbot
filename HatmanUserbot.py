@@ -84,11 +84,11 @@ class Database:
         return gruppi
 
     async def send_spam(client, gruppo_id, messaggio):
-    try:
-        # Invia il messaggio al gruppo utilizzando il client Pyrogram
-        await client.send_message(gruppo_id, messaggio)
-    except Exception as e:
-        print(f"Error sending spam to group {gruppo_id}: {e}")
+        try:
+            # Invia il messaggio al gruppo utilizzando il client Pyrogram
+            await client.send_message(gruppo_id, messaggio)
+        except Exception as e:
+            print(f"Error sending spam to group {gruppo_id}: {e}")
         
 word = Database("word.json")
 
