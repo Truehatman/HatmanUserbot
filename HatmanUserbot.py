@@ -97,8 +97,12 @@ scheduled_tasks = {}
 
 async def send_spam(client, gruppo_id, intervallo, messaggio):
     try:
+        # Ottieni le informazioni sul gruppo
+        group_info = await client.get_chat(gruppo_id)
+
         while True:
-            await client.send_message(gruppo_id, messaggio)
+            # Invia il messaggio
+            await client.send_message(group_info.id, messaggio)
             await asyncio.sleep(intervallo * 60)
     except asyncio.CancelledError:
         print(f"Spam task cancelled for group {gruppo_id}")
@@ -120,9 +124,7 @@ async def spam_command(client, message):
             if gruppo_id in scheduled_tasks:
                 scheduled_tasks[gruppo_id].cancel()
 
-            group_data['intervallo'] = intervallo
-            group_data['messaggio'] = messaggio
-
+            # Avvia un task per inviare lo spam nel gruppo
             task = asyncio.create_task(send_spam(client, gruppo_id, intervallo, messaggio))
             scheduled_tasks[gruppo_id] = task
             await asyncio.sleep(1)
@@ -131,18 +133,20 @@ async def spam_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .spam [minutes] [message]")
 
+
 # Comando per fermare lo spam
 @ubot.on_message(filters.user("self") & filters.command("stopspam", "."))
 async def stop_spam_command(client, message):
     try:
         global scheduled_tasks
-        groups = await word.get_groups()
 
-        for gruppo_id, group_data in groups.items():
-            if gruppo_id in scheduled_tasks:
-                scheduled_tasks[gruppo_id].cancel()
-                await asyncio.sleep(1)
-                del scheduled_tasks[gruppo_id]
+        # Annulla tutti i task
+        for task in scheduled_tasks.values():
+            task.cancel()
+
+        # Attendere brevemente per assicurarsi che i task siano effettivamente annullati
+        await asyncio.gather(*scheduled_tasks.values(), return_exceptions=True)
+        scheduled_tasks = {}
 
         await message.edit_text("Spam stopped successfully.")
     except Exception as e:
