@@ -76,6 +76,16 @@ class Database:
 
 word = Database("word.json")
 
+async def send_spam(client, gruppi):
+    try:
+        while True:
+            for gruppo_id, group_data in gruppi.items():
+                await client.send_message(gruppo_id, group_data['messaggio'])
+            await asyncio.sleep(group_data['intervallo'] * 60)
+    except asyncio.CancelledError:
+        print("Spam task cancelled")
+    except Exception as e:
+        print(f"Error while sending the message: {e}")
 
 paypal_link = None
 litecoin_link = None
@@ -177,19 +187,7 @@ async def del_group_command(client, message):
     except (ValueError, IndexError):
         await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
-async def send_spam(client, gruppi):
-    try:
-        while True:
-            for gruppo_id, group_data in gruppi.items():
-                await client.send_message(gruppo_id, group_data['messaggio'])
-                await asyncio.sleep(group_data['intervallo'] * 60)
-    except asyncio.CancelledError:
-        print("Spam task cancelled")
-    except Exception as e:
-        print(f"Error while sending the message: {e}")
-
-scheduled_tasks = {}  # Aggiunto per inizializzare la variabile
-
+# Aggiungi o sostituisci questo blocco di codice per i nuovi comandi .spam e .stopspam
 @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
