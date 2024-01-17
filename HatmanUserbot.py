@@ -50,14 +50,16 @@ class Database:
 
     async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
         update = json.load(open(self.database))
-        update["groups"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
+        gruppi = update.setdefault("gruppi", {})
+        gruppi[chat_id] = {"intervallo": intervallo, "messaggio": messaggio}
         await self.save(update)
-        return json.load(open(self.database))["groups"][chat_id]
+        return gruppi[chat_id]
     
-    async def del_group(self, chat_id: int):
+     async def del_group(self, chat_id: int):
         update = json.load(open(self.database))
-        if chat_id in update["groups"]:
-            del update["groups"][chat_id]
+        gruppi = update.setdefault("gruppi", {})
+        if chat_id in gruppi:
+            del gruppi[chat_id]
             await self.save(update)
             return True
         else:
