@@ -30,7 +30,8 @@ from random import randint
 import time
 import sqlite3
 
-print("HatManUserbot started")
+print("HatManUserbot started..")
+print("#######################")
 
 ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
 ubot.start()
@@ -45,39 +46,29 @@ class Database:
         self.database = file_name
         if not os.path.exists(file_name):
             with open(file_name, "w") as f:
-                # Inizializza il file JSON se non esiste
-                json.dump({"word": {}, "wordr": {}, "sticker": False, "gruppi": {}}, f)
+                json.dump({"gruppi": {}}, f)
 
     async def save(self, update: dict):
         with open(self.database, "w") as f:
-            # Scrivi nel file JSON
             json.dump(update, f)
 
     async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
         update = json.load(open(self.database))
-        gruppi = update.setdefault("gruppi", {})
         chat_id_str = str(chat_id)
-        gruppi[chat_id_str] = {"intervallo": intervallo, "messaggio": messaggio}
+        update["gruppi"][chat_id_str] = {"intervallo": intervallo, "messaggio": messaggio}
         await self.save(update)
-        return gruppi[chat_id_str]
+        return update["gruppi"][chat_id_str]
 
     async def del_group(self, chat_id: int):
         try:
             chat_id_str = str(chat_id)
             update = json.load(open(self.database))
-            gruppi = update.setdefault("gruppi", {})
-
-            print(f"Before deletion - Groups: {gruppi}")
-
-            if chat_id_str in gruppi:
-                del gruppi[chat_id_str]
+            
+            if chat_id_str in update["gruppi"]:
+                del update["gruppi"][chat_id_str]
                 await self.save(update)
-
-                print(f"After deletion - Groups: {gruppi}")
-
                 return True, chat_id_str
             else:
-                print(f"Group ID {chat_id_str} not found in the list.")
                 return False, chat_id_str
         except Exception as e:
             print(f"Error during del_group: {e}")
@@ -85,8 +76,7 @@ class Database:
 
     async def get_groups(self):
         update = json.load(open(self.database))
-        gruppi = update.setdefault("gruppi", {})
-        return gruppi
+        return update.get("gruppi", {})
         
     async def load_paypal_link(self):
         update = json.load(open(self.database))
@@ -123,15 +113,19 @@ async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: s
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client: Client, message: Message):
     try:
-        args = message.text.split()
-        intervallo = int(args[1])
-        messaggio = " ".join(args[2:])
+        args = message.text.split(maxsplit=2)
+        
+        if len(args) < 3:
+            await message.edit_text("Usage: `.spam <intervallo in minuti> <messaggio>`")
+            return
 
-        # Ottieni l'elenco dei gruppi dal database
+        intervallo = int(args[1])
+        messaggio = args[2]
+
         groups = await word.get_groups()
         gruppi = list(groups.keys())
 
-        for group_id_internal in gruppi:
+        for group_id in gruppi:
             try:
                 chat = await client.get_chat(chat_id=group_id)
                 default_permissions = await chat.default_permissions
