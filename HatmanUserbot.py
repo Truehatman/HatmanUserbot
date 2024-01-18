@@ -99,6 +99,19 @@ gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
+async def set_permissions(client, group_id):
+    try:
+        await client.edit_chat_permissions(
+            chat_id=group_id,
+            permissions=await client.get_chat(chat_id=group_id).default_permissions
+        )
+        print(f"Permissions set for group {group_id}")
+    except types.ChatIdInvalid as e:
+        print(f"Error: {e}")
+    except Exception as e:
+        print(f"Error while setting permissions: {e}")
+
+
 # Funzione per inviare spam
 async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: str):
     try:
@@ -113,7 +126,7 @@ async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: s
         print(f"Error while sending spam in group {group_id}: {e}")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
-async def spam_command(client: Client, message: Message):
+async def spam_command(client, message):
     try:
         args = message.text.split(maxsplit=2)
         
@@ -124,29 +137,19 @@ async def spam_command(client: Client, message: Message):
         intervallo = int(args[1])
         messaggio = args[2]
 
+        # Ottieni l'elenco dei gruppi dal database
         groups = await word.get_groups()
         gruppi = list(groups.keys())
 
         for group_id in gruppi:
             try:
-                chat = await client.get_chat(chat_id=group_id)
+                await set_permissions(client, group_id)
                 
-                if chat.type not in ("group", "supergroup"):
-                    print(f"Skipped non-group chat {group_id}")
-                    continue
-
-                default_permissions = await chat.default_permissions
-                await client.set_chat_permissions(
-                    chat_id=group_id,
-                    permissions=default_permissions
-                )
-                print(f"Permissions set for group {group_id}")
-
                 task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
 
-            except PeerIdInvalid as e:
+            except types.ChatIdInvalid as e:
                 print(f"Error: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
