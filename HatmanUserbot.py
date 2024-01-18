@@ -99,6 +99,7 @@ gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
+# Funzione per impostare i permessi
 async def set_permissions(client, group_id):
     try:
         await client.edit_chat_permissions(
@@ -106,8 +107,6 @@ async def set_permissions(client, group_id):
             permissions=await client.get_chat(chat_id=group_id).default_permissions
         )
         print(f"Permissions set for group {group_id}")
-    except types.ChatIdInvalid as e:
-        print(f"Error: {e}")
     except Exception as e:
         print(f"Error while setting permissions: {e}")
 
