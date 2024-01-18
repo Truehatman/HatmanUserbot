@@ -158,6 +158,8 @@ async def spam_command(client: Client, message: Message):
 
         for group_id in gruppi:
             try:
+                print(f"Trying to send spam in group {group_id}")
+
                 await client.send_message(chat_id=group_id, text="Setting basic permissions for spam.")
                 
                 # Set basic permissions
