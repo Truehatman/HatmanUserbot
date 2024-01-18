@@ -77,28 +77,17 @@ class Database:
         
             return chat_id
     
-    async def del_group(self, identifier):
+    async def del_group(self, chat_id: int):
         try:
+            chat_id_str = str(chat_id)
             update = json.load(open(self.database))
-
-            try:
-                chat_id = int(identifier)
-            except ValueError:
-                chat_id = None
-
-            if chat_id is None:
-                try:
-                    chat = await client.get_chat(identifier)
-                    chat_id = chat.id
-                except Exception:
-                    pass
-
-            if chat_id is not None and chat_id in update["gruppi"]:
-                del update["gruppi"][chat_id]
+            
+            if chat_id_str in update["gruppi"]:
+                del update["gruppi"][chat_id_str]
                 await self.save(update)
-                return True, chat_id
+                return True, chat_id_str
             else:
-                return False, chat_id
+                return False, chat_id_str
         except Exception as e:
             print(f"Error during del_group: {e}")
             return False, None
