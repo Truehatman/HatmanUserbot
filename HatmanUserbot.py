@@ -89,11 +89,40 @@ class Database:
         update["paypal_link"] = link
         await self.save(update)
 
+    async def load_litecoin_link(self):
+        update = json.load(open(self.database))
+        return update.get("litecoin_link")
+
+    async def save_litecoin_link(self, link):
+        update = json.load(open(self.database))
+        update["litecoin_link"] = link
+        await self.save(update)
+
+    async def load_bitcoin_link(self):
+        update = json.load(open(self.database))
+        return update.get("bitcoin_link")
+
+    async def save_bitcoin_link(self, link):
+        update = json.load(open(self.database))
+        update["bitcoin_link"] = link
+        await self.save(update)
+        
+    async def load_ethereum_link(self):
+        update = json.load(open(self.database))
+        return update.get("ethereum_link")
+
+    async def save_ethereum_link(self, link):
+        update = json.load(open(self.database))
+        update["ethereum_link"] = link
+        await self.save(update)
+
 
 word = Database("word.json")
 
 paypal_link = None
 litecoin_link = None
+bitcoin_link = None
+ethereum_link = None
 
 gruppi = []
 muted_users = {}
@@ -117,7 +146,7 @@ async def spam_command(client: Client, message: Message):
         args = message.text.split(maxsplit=2)
         
         if len(args) < 3:
-            await message.edit_text("Usage: `.spam <intervallo in minuti> <messaggio>`")
+            await message.edit_text("Usage: `.spam <minutes> <message>`")
             return
 
         intervallo = int(args[1])
@@ -132,6 +161,7 @@ async def spam_command(client: Client, message: Message):
                 await client.send_message(chat_id=group_id, text="Setting basic permissions for spam.")
                 
                 # Set basic permissions (you might need to customize this)
+                chat = await client.get_chat(chat_id=group_id)
                 await client.restrict_chat_member(chat_id=group_id, user_id=client.me.id, permissions={
                     "can_send_messages": True,
                     "can_send_media_messages": True,
@@ -304,16 +334,69 @@ async def set_litecoin_link(client, message):
         # Imposta il link Litecoin generico
         litecoin_link = link_litecoin
 
+        await word.save_litecoin_link(link_litecoin)
+
         await message.edit_text("Ltc address set successfully.")
     except (IndexError, ValueError):
         await message.edit_text("Right command: .ltcset [Address]")
 
 @ubot.on_message(filters.user("self") & filters.command("ltc", "."))
 async def show_litecoin_link(client, message):
+    litecoin_link = await word.load_litecoin_link()
     if litecoin_link:
         await message.edit_text(f"{litecoin_link}")
     else:
         await message.edit_text("No ltc address  set. Use .ltcset to set a link.")
+
+@ubot.on_message(filters.user("self") & filters.command("btcset", "."))
+async def set_bitcoin_link(client, message):
+    global bitcoin_link
+    try:
+        # Estrai il testo del messaggio dopo il comando
+        command_text = message.text.split(' ', 1)[1]
+        link_bitcoin = command_text
+
+        # Imposta il link Litecoin generico
+        bitcoin_link = link_bitcoin
+
+        await word.save_bitcoin_link(link_bitcoin)
+
+        await message.edit_text("Btc address set successfully.")
+    except (IndexError, ValueError):
+        await message.edit_text("Right command: .btcset [Address]")
+
+@ubot.on_message(filters.user("self") & filters.command("btc", "."))
+async def show_bitcoin_link(client, message):
+    bitcoin_link = await word.load_bitcoin_link()
+    if bitcoin_link:
+        await message.edit_text(f"{bitcoin_link}")
+    else:
+        await message.edit_text("No btc address  set. Use .btcset to set a link.")
+
+@ubot.on_message(filters.user("self") & filters.command("ethset", "."))
+async def set_eth_link(client, message):
+    global ethereum_link
+    try:
+        # Estrai il testo del messaggio dopo il comando
+        command_text = message.text.split(' ', 1)[1]
+        link_ethereum = command_text
+
+        # Imposta il link Litecoin generico
+        ethereum_link = link_ethereum
+
+        await word.save_ethereum_link(link_ethereum)
+
+        await message.edit_text("Eth address set successfully.")
+    except (IndexError, ValueError):
+        await message.edit_text("Right command: .ethset [Address]")
+
+@ubot.on_message(filters.user("self") & filters.command("eth", "."))
+async def show_ethereum_link(client, message):
+    ethereum_link = await word.load_ethereum_link()
+    if ethereum_link:
+        await message.edit_text(f"{ethereum_link}")
+    else:
+        await message.edit_text("No eth address  set. Use .ethset to set a link.")
        
 @ubot.on_message(filters.user("self") & filters.command("block", "."))
 async def block_user(client, message):
