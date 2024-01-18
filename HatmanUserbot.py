@@ -120,7 +120,7 @@ async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: s
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
-@Client.on_message(filters.user("self") & filters.command("spam", "."))
+@ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client: Client, message: Message):
     try:
         args = message.text.split()
