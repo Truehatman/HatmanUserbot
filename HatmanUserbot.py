@@ -133,6 +133,8 @@ async def send_spam(client, group_id, intervallo, messaggio):
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
+# ...
+
 # Comando per avviare lo spam
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client, message):
@@ -141,8 +143,12 @@ async def spam_command(client, message):
         intervallo = int(args[1])
         messaggio = " ".join(args[2:])
 
+        # Ottieni l'elenco dei gruppi dal database
+        groups = await word.get_groups()
+        gruppi.extend(groups.keys())
+
         # Imposta i permessi per ogni gruppo
-        for group_id in gruppi:
+        for group_id in groups:
             # Rimuovi il segno meno e converte in intero positivo
             group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
 
@@ -150,7 +156,7 @@ async def spam_command(client, message):
             print(f"Permissions set for group {group_id_positive}")
 
         # Avvia lo spam in ogni gruppo
-        for group_id in gruppi:
+        for group_id in groups:
             # Rimuovi il segno meno e converte in intero positivo
             group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
 
