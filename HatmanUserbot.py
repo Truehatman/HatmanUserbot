@@ -105,18 +105,6 @@ gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
-async def set_permissions(client, group_id):
-    try:
-        chat = await client.get_chat(chat_id=group_id)
-        default_permissions = await chat.default_permissions
-        await client.set_chat_permissions(
-            chat_id=group_id,
-            permissions=default_permissions
-        )
-        print(f"Permissions set for group {group_id}")
-    except Exception as e:
-        print(f"Error while setting permissions: {e}")
-
 async def send_spam(client, group_id, intervallo, messaggio):
     try:
         while True:
@@ -139,21 +127,23 @@ async def spam_command(client, message):
         groups = await word.get_groups()
         gruppi.extend(groups.keys())
 
-        for group_id in groups:
-            try:
-                await set_permissions(client, group_id)
-            except Exception as e:
-                print(f"Error while setting permissions for group {group_id}: {e}")
-            
         for group_id in gruppi:
             try:
-                task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
-                scheduled_tasks[group_id] = task
-                print(f"Spam task created for group {group_id}")
+                chat = await client.get_chat(chat_id=group_id)
+                default_permissions = await chat.default_permissions
+                await client.set_chat_permissions(
+                    chat_id=group_id,
+                    permissions=default_permissions
+                )
+                print(f"Permissions set for group {group_id}")
             except Exception as e:
-                print(f"Error while creating spam task for group {group_id}: {e}")
+                print(f"Error while setting permissions for group {group_id}: {e}")
 
-        await message.edit_text(f"Spam started successfully in all groups with {intervallo} minutes interval.")
+            task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
+            scheduled_tasks[group_id] = task
+            print(f"Spam task created for group {group_id}")
+
+        await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
         print(f"Error while starting spam: {e}")
         await message.edit_text("Error while starting spam.")
