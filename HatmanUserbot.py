@@ -143,26 +143,27 @@ async def send_spam(client: Client, chat_id: int, intervallo: int, messaggio: st
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client: Client, message: Message):
     try:
-        args = message.text.split(maxsplit=2)
-        
-        if len(args) < 3:
-            await message.edit_text("Usage: `.spam <minutes> <messaggio>`")
+        args = message.text.split(maxsplit=1)
+
+        if len(args) < 2:
+            await message.edit_text("Usage: `.spam <minutes>`")
             return
 
         intervallo = int(args[1])
-        messaggio = args[2]
 
         # Get the list of groups from the database
         groups = await word.get_groups()
-        gruppi = list(groups.keys())
+        group_usernames = list(groups.keys())
 
-        for chat_id in gruppi:
+        for group_username in group_usernames:
             try:
-                print(f"Trying to send spam in group {chat_id}")
-                
+                print(f"Trying to send spam to group {group_username}")
+
+                # Get chat information using the username
+                chat = await client.get_chat(group_username)
+
                 # Set basic permissions
-                chat = await client.get_chat(chat_id)
-                await client.restrict_chat_member(chat_id, user_id=client.me.id, permissions={
+                await client.restrict_chat_member(chat.id, user_id=client.me.id, permissions={
                     "can_send_messages": True,
                     "can_send_media_messages": True,
                     "can_send_polls": True,
@@ -171,23 +172,29 @@ async def spam_command(client: Client, message: Message):
                     "can_invite_users": True,
                 })
 
-                print(f"Basic permissions set for group {chat_id}")
+                print(f"Basic permissions set for group {group_username}")
 
-                # Add group to the database and get the ID as a string
-                chat_id_str = await word.add_group(chat_id, intervallo, messaggio)
+                # Forward the replied message to the group
+                if message.reply_to_message:
+                    forward_message = message.reply_to_message.message_id
+                    await client.forward_messages(chat.id, chat.id, message_ids=forward_message)
 
-                task = asyncio.create_task(send_spam(client, chat_id_str, intervallo, messaggio))
-                scheduled_tasks[chat_id_str] = task
-                print(f"Spam task created for group {chat_id_str}")
+                    print(f"Spam message forwarded to group {group_username}")
+
+                    # Add group to the database and get the ID as a string
+                    chat_id_str = await word.add_group(chat.id, intervallo, "")
+
+                    task = asyncio.create_task(send_spam(client, chat_id_str, intervallo, ""))
+                    scheduled_tasks[chat_id_str] = task
+                    print(f"Spam task created for group {chat_id_str}")
 
             except Exception as e:
-                print(f"Error in group {chat_id}: {e}")
+                print(f"Error in group {group_username}: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
         print(f"Error while starting spam: {e}")
         await message.edit_text("Error while starting spam.")
-
 
 
 # Comando per fermare lo spam
