@@ -169,12 +169,17 @@ async def spam_command(client, message):
                 # Rimuovi il segno meno e converte in intero positivo
                 group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
 
-                task = asyncio.create_task(send_spam(client, [group_id_positive], intervallo, messaggio))
-                scheduled_tasks[group_id_positive] = task
-                print(f"Spam task created for group {group_id_positive}")
+                try:
+                    task = asyncio.create_task(send_spam(client, [group_id_positive], intervallo, messaggio))
+                    scheduled_tasks[group_id_positive] = task
+                    print(f"Spam task created for group {group_id_positive}")
+                except pyrogram.errors.PeerIdInvalid:
+                    print(f"Error while sending spam: Peer id invalid: {group_id_positive}")
+
+            await message.edit_text(f"Spam started successfully in all groups.")
 
         except Exception as e:
-            # Codice per gestire l'eccezione
+            # Codice per gestire l'eccezione interna
             print(f"Error: {e}")
 
     except Exception as e:
