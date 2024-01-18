@@ -107,7 +107,7 @@ muted_users = {}
 scheduled_tasks = {}
 
 # Funzione per inviare spam
-async def send_spam(client: pyrogram.Client, group_id: int, intervallo: int, messaggio: str):
+async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: str):
     try:
         while True:
             print(f"Sending spam message to group {group_id}")
@@ -119,9 +119,8 @@ async def send_spam(client: pyrogram.Client, group_id: int, intervallo: int, mes
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
-# Comando per avviare lo spam
-@ubot.on_message(filters.user("self") & filters.command("spam", "."))
-async def spam_command(client: pyrogram.Client, message: Message):
+@Client.on_message(filters.user("self") & filters.command("spam", "."))
+async def spam_command(client: Client, message: Message):
     try:
         args = message.text.split()
         intervallo = int(args[1])
@@ -129,7 +128,7 @@ async def spam_command(client: pyrogram.Client, message: Message):
 
         # Ottieni l'elenco dei gruppi dal database
         groups = await word.get_groups()
-        gruppi.extend(groups.keys())
+        gruppi = list(groups.keys())
 
         for group_id in gruppi:
             try:
@@ -145,7 +144,7 @@ async def spam_command(client: pyrogram.Client, message: Message):
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
 
-            except pyrogram.errors.ChatIdInvalid as e:
+            except types.ChatIdInvalid as e:
                 print(f"Error: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
