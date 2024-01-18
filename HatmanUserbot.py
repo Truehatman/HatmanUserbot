@@ -12,6 +12,7 @@ from pyrogram.types import ChatPermissions
 from pyrogram.types import Message
 from typing import Union
 from typing import List
+from pyrogram import types
 import asyncio
 import time
 import asyncio
