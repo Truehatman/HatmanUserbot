@@ -252,38 +252,38 @@ async def percentage_command(client, message):
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
 @ubot.on_message(filters.user("self") & filters.command("addgroup", prefixes="."))
-        async def add_group_command(client, message):
-            try:
-                command_text = message.text.split(' ', 1)[1]
-                group_settings = await word.add_group(command_text, intervallo=5, messaggio="")
-                await message.edit_text(f"Group {group_settings} added to the list.")
-            except (ValueError, IndexError):
-                await message.edit_text("Right command: .addgroup [id_group] or [username]")
-        
-        @ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
-        async def group_list_command(client, message):
-            try:
-                groups = await word.get_groups()
-                if groups:
-                    group_list = "\n".join([f"{chat_id} (@{group_data['username']})" if 'username' in group_data else f"{chat_id}" for chat_id, group_data in groups.items()])
-                    await message.edit_text(f"Group list:\n{group_list}")
-                else:
-                    await message.edit_text("No groups found.")
-            except Exception as e:
-                print(f"Error while fetching group list: {e}")
-                await message.edit_text("Error while fetching group list.")
-                
-        @ubot.on_message(filters.user("self") & filters.command("delgroup", prefixes="."))
-        async def del_group_command(client, message):
-            try:
-                command_text = message.text.split(' ', 1)[1]
-                success, removed_group_id = await word.del_group(command_text)
-                if success:
-                    await message.edit_text(f"Group {removed_group_id} successfully removed from the list and database.")
-                else:
-                    await message.edit_text(f"Group {removed_group_id} not found in the list.")
-            except (ValueError, IndexError):
-                await message.edit_text("Right command: .delgroup [id_group] or [username]")n
+async def add_group_command(client, message):
+    try:
+        command_text = message.text.split(' ', 1)[1]
+        group_settings = await word.add_group(command_text, intervallo=5, messaggio="")
+        await message.edit_text(f"Group {group_settings} added to the list.")
+    except (ValueError, IndexError):
+        await message.edit_text("Right command: .addgroup [id_group] or [username]")
+
+@ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
+async def group_list_command(client, message):
+    try:
+        groups = await word.get_groups()
+        if groups:
+            group_list = "\n".join([f"{chat_id} (@{group_data['username']})" if 'username' in group_data else f"{chat_id}" for chat_id, group_data in groups.items()])
+            await message.edit_text(f"Group list:\n{group_list}")
+        else:
+            await message.edit_text("No groups found.")
+    except Exception as e:
+        print(f"Error while fetching group list: {e}")
+        await message.edit_text("Error while fetching group list.")
+
+@ubot.on_message(filters.user("self") & filters.command("delgroup", prefixes="."))
+async def del_group_command(client, message):
+    try:
+        command_text = message.text.split(' ', 1)[1]
+        success, removed_group_id = await word.del_group(command_text)
+        if success:
+            await message.edit_text(f"Group {removed_group_id} successfully removed from the list and database.")
+        else:
+            await message.edit_text(f"Group {removed_group_id} not found in the list.")
+    except (ValueError, IndexError):
+        await message.edit_text("Right command: .delgroup [id_group] or [username]")
 
 @ubot.on_message(filters.user("self") & filters.command("ppset", "."))
 async def set_paypal_link(client, message):
