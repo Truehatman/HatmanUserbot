@@ -153,7 +153,7 @@ async def spam_command(client: Client, message: Message):
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
 
-            except types.PeerIdInvalid as e:
+            except pyrogram.errors.PeerIdInvalid as e:
                 print(f"Error in group {group_id}: {e}")
                 # Handle the PeerIdInvalid exception here
 
