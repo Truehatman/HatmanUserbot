@@ -149,7 +149,15 @@ async def send_spam(client: Client, username: str, intervallo: int, messaggio: s
             print(f"Sending spam message to group {username}")
             
             try:
+                # Simula un'azione di invio di messaggi
+                await client.send_chat_action(username, "typing")
+                
+                # Attendere un breve periodo di tempo per simulare l'invio del messaggio
+                await asyncio.sleep(2)
+
+                # Invia il messaggio di spam
                 await client.send_message(username, text=messaggio)
+                
                 print(f"Spam message sent to group {username}")
             except Exception as e:
                 print(f"Error while sending spam in group {username}: {e}")
