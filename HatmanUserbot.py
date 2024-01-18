@@ -143,6 +143,9 @@ async def spam_command(client: Client, message: Message):
 
                 print(f"Basic permissions set for group {group_id}")
 
+                # Add a delay before starting spam to ensure the bot is recognized
+                await asyncio.sleep(5)  # You can adjust the delay time as needed
+
                 task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
