@@ -55,11 +55,11 @@ class Database:
             json.dump(update, f)
 
     async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
-        update = json.load(open(self.database))
-        chat_id_str = str(chat_id)
-        update["gruppi"][chat_id_str] = {"intervallo": intervallo, "messaggio": messaggio}
-        await self.save(update)
-        return update["gruppi"][chat_id_str]
+          update = json.load(open(self.database))
+          chat_id_str = str(chat_id)
+          update["gruppi"][chat_id_str] = {"intervallo": intervallo, "messaggio": messaggio}
+          await self.save(update)
+          return chat_id_str
 
     async def del_group(self, chat_id: int):
         try:
@@ -173,9 +173,12 @@ async def spam_command(client: Client, message: Message):
 
                 print(f"Basic permissions set for group {chat_id}")
 
-                task = asyncio.create_task(send_spam(client, chat_id, intervallo, messaggio))
-                scheduled_tasks[chat_id] = task
-                print(f"Spam task created for group {chat_id}")
+                # Add group to the database and get the ID as a string
+                chat_id_str = await word.add_group(chat_id, intervallo, messaggio)
+
+                task = asyncio.create_task(send_spam(client, chat_id_str, intervallo, messaggio))
+                scheduled_tasks[chat_id_str] = task
+                print(f"Spam task created for group {chat_id_str}")
 
             except Exception as e:
                 print(f"Error in group {chat_id}: {e}")
