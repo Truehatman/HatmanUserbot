@@ -128,15 +128,15 @@ gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
-async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: str):
+async def send_spam(client: Client, chat_id: int, intervallo: int, messaggio: str):
     try:
         while True:
-            print(f"Sending spam message to group {group_id}")
-            await client.send_message(chat_id=group_id, text=messaggio)
-            print(f"Spam message sent to group {group_id}")
+            print(f"Sending spam message to group {chat_id}")
+            await client.send_message(chat_id, text=messaggio)
+            print(f"Spam message sent to group {chat_id}")
             await asyncio.sleep(intervallo * 60)
     except asyncio.CancelledError:
-        print(f"Spam task for group {group_id} cancelled.")
+        print(f"Spam task for group {chat_id} cancelled.")
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
@@ -146,7 +146,7 @@ async def spam_command(client: Client, message: Message):
         args = message.text.split(maxsplit=2)
         
         if len(args) < 3:
-            await message.edit_text("Usage: `.spam <intervallo in minuti> <messaggio>`")
+            await message.edit_text("Usage: `.spam <minutes> <messaggio>`")
             return
 
         intervallo = int(args[1])
@@ -156,13 +156,13 @@ async def spam_command(client: Client, message: Message):
         groups = await word.get_groups()
         gruppi = list(groups.keys())
 
-        for group_id in gruppi:
+        for chat_id in gruppi:
             try:
-                print(f"Trying to send spam in group {group_id}")
+                print(f"Trying to send spam in group {chat_id}")
                 
                 # Set basic permissions
-                chat = await client.get_chat(chat_id=group_id)
-                await client.restrict_chat_member(chat_id=group_id, user_id=client.me.id, permissions={
+                chat = await client.get_chat(chat_id)
+                await client.restrict_chat_member(chat_id, user_id=client.me.id, permissions={
                     "can_send_messages": True,
                     "can_send_media_messages": True,
                     "can_send_polls": True,
@@ -171,14 +171,14 @@ async def spam_command(client: Client, message: Message):
                     "can_invite_users": True,
                 })
 
-                print(f"Basic permissions set for group {group_id}")
+                print(f"Basic permissions set for group {chat_id}")
 
-                task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
-                scheduled_tasks[group_id] = task
-                print(f"Spam task created for group {group_id}")
+                task = asyncio.create_task(send_spam(client, chat_id, intervallo, messaggio))
+                scheduled_tasks[chat_id] = task
+                print(f"Spam task created for group {chat_id}")
 
             except Exception as e:
-                print(f"Error in group {group_id}: {e}")
+                print(f"Error in group {chat_id}: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
