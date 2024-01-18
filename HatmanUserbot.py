@@ -99,19 +99,6 @@ gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
-# Funzione per impostare i permessi
-async def set_permissions(client, group_id):
-    try:
-        await client.edit_chat_permissions(
-            chat_id=group_id,
-            permissions=await client.get_chat(chat_id=group_id).default_permissions
-        )
-        print(f"Permissions set for group {group_id}")
-    except Exception as e:
-        print(f"Error while setting permissions: {e}")
-
-
-# Funzione per inviare spam
 async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: str):
     try:
         while True:
@@ -124,8 +111,8 @@ async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: s
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
-@ubot.on_message(filters.user("self") & filters.command("spam", "."))
-async def spam_command(client, message):
+@Client.on_message(filters.user("self") & filters.command("spam", "."))
+async def spam_command(client: Client, message: Message):
     try:
         args = message.text.split(maxsplit=2)
         
@@ -136,20 +123,32 @@ async def spam_command(client, message):
         intervallo = int(args[1])
         messaggio = args[2]
 
-        # Ottieni l'elenco dei gruppi dal database
+        # Get the list of groups from the database
         groups = await word.get_groups()
         gruppi = list(groups.keys())
 
         for group_id in gruppi:
             try:
-                await set_permissions(client, group_id)
+                await client.send_message(chat_id=group_id, text="Setting basic permissions for spam.")
                 
+                # Set basic permissions (you might need to customize this)
+                await client.restrict_chat_member(chat_id=group_id, user_id=client.me.id, permissions={
+                    "can_send_messages": True,
+                    "can_send_media_messages": True,
+                    "can_send_polls": True,
+                    "can_send_other_messages": True,
+                    "can_add_web_page_previews": True,
+                    "can_invite_users": True,
+                })
+
+                print(f"Basic permissions set for group {group_id}")
+
                 task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
 
-            except types.ChatIdInvalid as e:
-                print(f"Error: {e}")
+            except Exception as e:
+                print(f"Error in group {group_id}: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
