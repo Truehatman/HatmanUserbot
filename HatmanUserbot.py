@@ -260,9 +260,24 @@ async def percentage_command(client, message):
 @ubot.on_message(filters.user("self") & filters.command("addgroup", prefixes="."))
 async def add_group_command(client, message):
     try:
+        # Estrai il testo del messaggio dopo il comando
         command_text = message.text.split(' ', 1)[1]
-        group_settings = await word.add_group(command_text, intervallo=5, messaggio="")
-        await message.edit_text(f"Group {group_settings} added to the list.")
+
+        # Ottieni l'ID del gruppo a partire dal suo username o ID
+        try:
+            chat = await client.get_chat(chat_id=command_text)
+            gruppo_id = chat.id
+            gruppo_username = chat.username
+        except ValueError:
+            gruppo_id = None
+            gruppo_username = None
+
+        # Aggiungi il gruppo al database
+        if gruppo_id is not None:
+            group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="", username=gruppo_username)
+            await message.edit_text(f"Group {gruppo_id} ({gruppo_username}) added to the list ")
+        else:
+            await message.edit_text("Invalid group ID or username.")
     except (ValueError, IndexError):
         await message.edit_text("Right command: .addgroup [id_group] or [username]")
 
