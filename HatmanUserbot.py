@@ -29,7 +29,6 @@ import string
 from random import randint
 import time
 import sqlite3
-import word
 
 print("HatManUserbot started")
 
