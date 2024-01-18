@@ -130,6 +130,11 @@ async def spam_command(client: Client, message: Message):
         for group_id in gruppi:
             try:
                 chat = await client.get_chat(chat_id=group_id)
+                
+                if chat.type not in ("group", "supergroup"):
+                    print(f"Skipped non-group chat {group_id}")
+                    continue
+
                 default_permissions = await chat.default_permissions
                 await client.set_chat_permissions(
                     chat_id=group_id,
