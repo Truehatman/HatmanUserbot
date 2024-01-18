@@ -111,7 +111,7 @@ async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: s
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
-@Client.on_message(filters.user("self") & filters.command("spam", "."))
+@ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client: Client, message: Message):
     try:
         args = message.text.split(maxsplit=2)
@@ -156,7 +156,7 @@ async def spam_command(client: Client, message: Message):
         await message.edit_text("Error while starting spam.")
 
 # Comando per fermare lo spam
-@ubot.on_message(filters.user("self") & filters.command("stopspam", "."))
+@ubot.on_message(filters.user("self") & filters.command("stopspam", prefixes="."))
 async def stop_spam_command(client, message):
     try:
         # Cancella i task programmati per ogni gruppo
@@ -169,15 +169,15 @@ async def stop_spam_command(client, message):
         await message.edit_text("Error while stopping spam.")
 
         
-@ubot.on_message(filters.user("self") & filters.command("help", "."))
+@ubot.on_message(filters.user("self") & filters.command("help", prefixes="."))
 async def help_command(client, message):
     await message.edit_text("https://telegra.ph/HatmanUserbot-01-14")
 
-@ubot.on_message(filters.user("self") & filters.command("dev", "."))
+@ubot.on_message(filters.user("self") & filters.command("dev", prefixes="."))
 async def creator_command(client, message):
     await message.edit_text("I am developed by @hatmanexchanger!")
 
-@ubot.on_message(filters.user("self") & filters.command("percentage", "."))
+@ubot.on_message(filters.user("self") & filters.command("percentage", prefixes="."))
 async def percentage_command(client, message):
     # Estrai il testo del messaggio dopo il comando
     command_text = message.text.split(' ', 2)[1:]
