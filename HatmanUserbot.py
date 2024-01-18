@@ -11,6 +11,7 @@ from pyrogram.raw.types import InputPeerNotifySettings, InputNotifyPeer, InputPe
 from pyrogram.types import ChatPermissions
 from pyrogram.types import Message
 from typing import Union
+from typing import List
 import asyncio
 import time
 import asyncio
@@ -28,6 +29,7 @@ import string
 from random import randint
 import time
 import sqlite3
+import word
 
 print("HatManUserbot started")
 
