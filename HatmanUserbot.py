@@ -86,7 +86,7 @@ class Database:
         gruppi = update.setdefault("gruppi", {})
         return gruppi
         
-    def load_paypal_link(self):
+    async def load_paypal_link(self):
         update = json.load(open(self.database))
         return update.get("paypal_link")
 
@@ -126,24 +126,22 @@ async def set_permissions(client, group_id):
         print(f"Error while setting permissions: {e}")
 
 
+
 # Funzione per inviare spam
-# Funzione per inviare spam
-async def send_spam(client, group_id, intervallo, messaggio):
+async def send_spam(client, group_ids, intervallo, messaggio):
     try:
         while True:
-            print(f"Sending spam message to group {group_id}")
-            await client.send_message(chat_id=group_id, text=messaggio)
-            print(f"Spam message sent to group {group_id}")
+            print("Sending spam message to all groups.")
+            for group_id in group_ids:
+                print(f"Sending to group {group_id}")
+                await client.send_message(chat_id=group_id, text=messaggio)
+                print(f"Sent to group {group_id}")
+            print("Spam message sent to all groups.")
             await asyncio.sleep(intervallo * 60)  # Converti intervallo da minuti a secondi
     except asyncio.CancelledError:
-        print(f"Spam task for group {group_id} cancelled.")
-    except pyrogram.errors.FloodWait as e:
-        print(f"FloodWait error in group {group_id}. Waiting for {e.x} seconds.")
-        await asyncio.sleep(e.x)
+        print("Spam task cancelled.")
     except Exception as e:
-        print(f"Error while sending spam in group {group_id}: {e}")
-
-# ...
+        print(f"Error while sending spam: {e}")
 
 # Comando per avviare lo spam
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
