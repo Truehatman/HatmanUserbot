@@ -9,6 +9,7 @@ from pyrogram.raw.functions.account import UpdateNotifySettings
 from pyrogram.raw.base import InputPeer
 from pyrogram.raw.types import InputPeerNotifySettings, InputNotifyPeer, InputPeerChat, Message
 from pyrogram.types import ChatPermissions
+from pyrogram.types import Message
 from typing import Union
 import asyncio
 import time
@@ -105,7 +106,8 @@ gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
-async def send_spam(client, group_id, intervallo, messaggio):
+# Funzione per inviare spam
+async def send_spam(client: pyrogram.Client, group_id: int, intervallo: int, messaggio: str):
     try:
         while True:
             print(f"Sending spam message to group {group_id}")
@@ -117,13 +119,15 @@ async def send_spam(client, group_id, intervallo, messaggio):
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
+# Comando per avviare lo spam
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
-async def spam_command(client, message):
+async def spam_command(client: pyrogram.Client, message: Message):
     try:
         args = message.text.split()
         intervallo = int(args[1])
         messaggio = " ".join(args[2:])
 
+        # Ottieni l'elenco dei gruppi dal database
         groups = await word.get_groups()
         gruppi.extend(groups.keys())
 
@@ -136,12 +140,13 @@ async def spam_command(client, message):
                     permissions=default_permissions
                 )
                 print(f"Permissions set for group {group_id}")
-            except Exception as e:
-                print(f"Error while setting permissions for group {group_id}: {e}")
 
-            task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
-            scheduled_tasks[group_id] = task
-            print(f"Spam task created for group {group_id}")
+                task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
+                scheduled_tasks[group_id] = task
+                print(f"Spam task created for group {group_id}")
+
+            except pyrogram.errors.ChatIdInvalid as e:
+                print(f"Error: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
