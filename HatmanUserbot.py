@@ -85,6 +85,16 @@ class Database:
         update = json.load(open(self.database))
         gruppi = update.setdefault("gruppi", {})
         return gruppi
+        
+    def load_paypal_link(self):
+        update = json.load(open(self.database))
+        return update.get("paypal_link")
+
+    async def save_paypal_link(self, link):
+        update = json.load(open(self.database))
+        update["paypal_link"] = link
+        await self.save(update)
+
 
 word = Database("word.json")
 
@@ -289,12 +299,17 @@ async def set_paypal_link(client, message):
         # Imposta il link PayPal generico
         paypal_link = link_paypal
 
+        # Salva il link PayPal nel database
+        await word.save_paypal_link(link_paypal)
+
         await message.edit_text("Link PayPal set successfully.")
     except (IndexError, ValueError):
         await message.edit_text("Right command: .ppset [link_paypal]")
 
 @ubot.on_message(filters.user("self") & filters.command("pp", "."))
 async def show_paypal_link(client, message):
+    # Usa Database.paypal_link per ottenere il link PayPal
+    paypal_link = await word.load_paypal_link()
     if paypal_link:
         await message.edit_text(f"Link PayPal:\n{paypal_link}")
     else:
