@@ -107,50 +107,26 @@ scheduled_tasks = {}
 
 async def set_permissions(client, group_id):
     try:
-        permissions = ChatPermissions(
-            can_send_messages=True,
-            can_send_media_messages=True,
-            can_send_stickers=True,
-            can_send_animations=True,
-            can_send_games=True,
-            can_use_inline_bots=True,
-            can_add_web_page_previews=True,
-            can_send_polls=True,
-            can_change_info=True,
-            can_invite_users=True,
-            can_pin_messages=True,
+        await client.edit_chat_permissions(
+            chat_id=group_id,
+            permissions=await client.get_chat(chat_id=group_id).default_permissions
         )
-        await client.set_chat_permissions(chat_id=group_id, permissions=permissions)
         print(f"Permissions set for group {group_id}")
     except Exception as e:
         print(f"Error while setting permissions: {e}")
 
-
-
-
-# Funzione per inviare spam
-async def send_spam(client, intervallo, messaggio):
+async def send_spam(client, group_id, intervallo, messaggio):
     try:
         while True:
-            for group_id in gruppi:
-                # Rimuovi il segno meno e converte in intero positivo
-                group_id_positive = abs(int(group_id))
-
-                print(f"Sending spam message to group {group_id_positive}")
-                await client.send_message(chat_id=group_id_positive, text=messaggio)
-                print(f"Spam message sent to group {group_id_positive}")
-
-            await asyncio.sleep(intervallo * 60)  # Converti intervallo da minuti a secondi
-
+            print(f"Sending spam message to group {group_id}")
+            await client.send_message(chat_id=group_id, text=messaggio)
+            print(f"Spam message sent to group {group_id}")
+            await asyncio.sleep(intervallo * 60)
     except asyncio.CancelledError:
-        print("Spam task cancelled.")
-    except pyrogram.errors.FloodWait as e:
-        print(f"FloodWait error. Waiting for {e.x} seconds.")
-        await asyncio.sleep(e.x)
+        print(f"Spam task for group {group_id} cancelled.")
     except Exception as e:
-        print(f"Error while sending spam: {e}")
+        print(f"Error while sending spam in group {group_id}: {e}")
 
-# Comando per avviare lo spam
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client, message):
     try:
@@ -158,40 +134,23 @@ async def spam_command(client, message):
         intervallo = int(args[1])
         messaggio = " ".join(args[2:])
 
-        # Ottieni l'elenco dei gruppi dal database
         groups = await word.get_groups()
         gruppi.extend(groups.keys())
 
-        # Imposta i permessi per ogni gruppo
         for group_id in groups:
-            # Rimuovi il segno meno e converte in intero positivo
             group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
-
             await set_permissions(client, group_id_positive)
-            print(f"Permissions set for group {group_id_positive}")
+            
+        for group_id in gruppi:
+            group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
+            task = asyncio.create_task(send_spam(client, group_id_positive, intervallo, messaggio))
+            scheduled_tasks[group_id_positive] = task
+            print(f"Spam task created for group {group_id_positive}")
 
-        try:
-            # Codice all'interno del blocco try
-            for group_id in gruppi:
-                # Rimuovi il segno meno e converte in intero positivo
-                group_id_positive = int(group_id[1:]) if group_id.startswith('-') else int(group_id)
-
-                try:
-                    task = asyncio.create_task(send_spam(client, [group_id_positive], intervallo, messaggio))
-                    scheduled_tasks[group_id_positive] = task
-                    print(f"Spam task created for group {group_id_positive}")
-                except pyrogram.errors.PeerIdInvalid:
-                    print(f"Error while sending spam: Peer id invalid: {group_id_positive}")
-
-            await message.edit_text(f"Spam started successfully in all groups.")
-
-        except Exception as e:
-            # Codice per gestire l'eccezione interna
-            print(f"Error: {e}")
-
+        await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
-        # Codice per gestire l'eccezione esterna
-        print(f"Error: {e}")
+        print(f"Error while starting spam: {e}")
+        await message.edit_text("Error while starting spam.")
 
 # Comando per fermare lo spam
 @ubot.on_message(filters.user("self") & filters.command("stopspam", "."))
