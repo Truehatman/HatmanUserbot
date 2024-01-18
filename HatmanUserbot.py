@@ -140,13 +140,13 @@ async def send_spam(client: Client, group_id: int, intervallo: int, messaggio: s
     except Exception as e:
         print(f"Error while sending spam in group {group_id}: {e}")
 
-@ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
+@ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client: Client, message: Message):
     try:
         args = message.text.split(maxsplit=2)
         
         if len(args) < 3:
-            await message.edit_text("Usage: `.spam <minutes> <message>`")
+            await message.edit_text("Usage: `.spam <intervallo in minuti> <messaggio>`")
             return
 
         intervallo = int(args[1])
@@ -160,7 +160,7 @@ async def spam_command(client: Client, message: Message):
             try:
                 await client.send_message(chat_id=group_id, text="Setting basic permissions for spam.")
                 
-                # Set basic permissions (you might need to customize this)
+                # Set basic permissions
                 chat = await client.get_chat(chat_id=group_id)
                 await client.restrict_chat_member(chat_id=group_id, user_id=client.me.id, permissions={
                     "can_send_messages": True,
@@ -177,8 +177,6 @@ async def spam_command(client: Client, message: Message):
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
 
-            except PeerIdInvalid as e:
-                print(f"Error in group {group_id}: {e}")
             except Exception as e:
                 print(f"Error in group {group_id}: {e}")
 
@@ -186,6 +184,7 @@ async def spam_command(client: Client, message: Message):
     except Exception as e:
         print(f"Error while starting spam: {e}")
         await message.edit_text("Error while starting spam.")
+
 
 
 # Comando per fermare lo spam
