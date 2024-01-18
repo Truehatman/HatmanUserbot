@@ -30,6 +30,7 @@ import string
 from random import randint
 import time
 import sqlite3
+from pyrogram.errors import PeerIdInvalid
 
 print("HatManUserbot started..")
 print("#######################")
@@ -140,7 +141,7 @@ async def spam_command(client: Client, message: Message):
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
 
-            except types.ChatIdInvalid as e:
+            except PeerIdInvalid as e:
                 print(f"Error: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
