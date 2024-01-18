@@ -143,6 +143,9 @@ async def spam_command(client: Client, message: Message):
 
                 print(f"Basic permissions set for group {group_id}")
 
+                # Send a test message to the group
+                await client.send_message(chat_id=group_id, text="Test message to meet the peer.")
+
                 # Add a delay before starting spam to ensure the bot is recognized
                 await asyncio.sleep(5)  # You can adjust the delay time as needed
 
