@@ -107,9 +107,11 @@ scheduled_tasks = {}
 
 async def set_permissions(client, group_id):
     try:
-        await client.edit_chat_permissions(
+        chat = await client.get_chat(chat_id=group_id)
+        default_permissions = await chat.default_permissions
+        await client.set_chat_permissions(
             chat_id=group_id,
-            permissions=await client.get_chat(chat_id=group_id).default_permissions
+            permissions=default_permissions
         )
         print(f"Permissions set for group {group_id}")
     except Exception as e:
