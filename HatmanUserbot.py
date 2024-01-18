@@ -147,13 +147,18 @@ async def send_spam(client: Client, username: str, intervallo: int, messaggio: s
     try:
         while True:
             print(f"Sending spam message to group {username}")
-            await client.send_message(username, text=messaggio)
-            print(f"Spam message sent to group {username}")
+            
+            try:
+                await client.send_message(username, text=messaggio)
+                print(f"Spam message sent to group {username}")
+            except Exception as e:
+                print(f"Error while sending spam in group {username}: {e}")
+
             await asyncio.sleep(intervallo * 60)
     except asyncio.CancelledError:
         print(f"Spam task for group {username} cancelled.")
     except Exception as e:
-        print(f"Error while sending spam in group {username}: {e}")
+        print(f"Error in send_spam: {e}")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client: Client, message: Message):
