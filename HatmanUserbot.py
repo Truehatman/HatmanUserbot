@@ -143,20 +143,12 @@ async def spam_command(client: Client, message: Message):
 
                 print(f"Basic permissions set for group {group_id}")
 
-                # Send a test message to the group
-                await client.send_message(chat_id=group_id, text="Test message to meet the peer.")
-
-                # Add a delay before starting spam to ensure the bot is recognized
-                await asyncio.sleep(5)  # You can adjust the delay time as needed
-
                 task = asyncio.create_task(send_spam(client, group_id, intervallo, messaggio))
                 scheduled_tasks[group_id] = task
                 print(f"Spam task created for group {group_id}")
 
-            except pyrogram.errors.PeerIdInvalid as e:
+            except PeerIdInvalid as e:
                 print(f"Error in group {group_id}: {e}")
-                # Handle the PeerIdInvalid exception here
-
             except Exception as e:
                 print(f"Error in group {group_id}: {e}")
 
@@ -164,6 +156,7 @@ async def spam_command(client: Client, message: Message):
     except Exception as e:
         print(f"Error while starting spam: {e}")
         await message.edit_text("Error while starting spam.")
+
 
 # Comando per fermare lo spam
 @ubot.on_message(filters.user("self") & filters.command("stopspam", prefixes="."))
