@@ -107,9 +107,9 @@ scheduled_tasks = {}
 
 async def set_permissions(client, group_id):
     try:
-        await client.edit_chat_permissions(
+        await client.set_chat_permissions(
             chat_id=group_id,
-            permissions=pyro_types.ChatPermissions(
+            permissions=ChatPermissions(
                 can_send_messages=True,
                 can_send_media_messages=True,
                 can_send_stickers=True,
@@ -124,6 +124,7 @@ async def set_permissions(client, group_id):
         )
     except Exception as e:
         print(f"Error while setting permissions: {e}")
+
 
 
 
