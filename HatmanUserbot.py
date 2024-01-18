@@ -131,7 +131,7 @@ async def spam_command(client: Client, message: Message):
         groups = await word.get_groups()
         gruppi = list(groups.keys())
 
-        for group_id in gruppi:
+        for group_id_internal in gruppi:
             try:
                 chat = await client.get_chat(chat_id=group_id)
                 default_permissions = await chat.default_permissions
