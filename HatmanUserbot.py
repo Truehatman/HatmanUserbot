@@ -35,7 +35,7 @@ from pyrogram.errors import PeerIdInvalid
 print("HatManUserbot started..")
 print("#######################")
 
-ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
+ubot = Client("killersession", api_id=1737, api_hash="84848eud83", lang_code="it")
 ubot.start()
 
 IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
@@ -44,41 +44,58 @@ ignore = []
 
 # Addword
 class Database:
-    def __init__(self, file_name: str):
-        self.database = file_name
-        if not os.path.exists(file_name):
-            with open(file_name, "w") as f:
-                json.dump({"gruppi": {}}, f)
-
-    async def save(self, update: dict):
-        with open(self.database, "w") as f:
-            json.dump(update, f)
-
-    async def add_group(self, chat_id: int, intervallo: int, messaggio: str):
-          update = json.load(open(self.database))
-          chat_id_str = str(chat_id)
-          update["gruppi"][chat_id_str] = {"intervallo": intervallo, "messaggio": messaggio}
-          await self.save(update)
-          return chat_id_str
-
-    async def del_group(self, chat_id: int):
-        try:
-            chat_id_str = str(chat_id)
-            update = json.load(open(self.database))
-            
-            if chat_id_str in update["gruppi"]:
-                del update["gruppi"][chat_id_str]
+            def __init__(self, file_name: str):
+                self.database = file_name
+                if not os.path.exists(file_name):
+                    with open(file_name, "w") as f:
+                        json.dump({"gruppi": {}}, f)
+        
+            async def save(self, update: dict):
+                with open(self.database, "w") as f:
+                    json.dump(update, f)
+        
+            async def add_group(self, identifier: str, intervallo: int, messaggio: str):
+                update = json.load(open(self.database))
+                try:
+                    chat_id = int(identifier)
+                    chat = await client.get_chat(chat_id)
+                    username = chat.username if chat.username else None
+                except ValueError:
+                    username = identifier
+        
+                update["gruppi"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": username}
                 await self.save(update)
-                return True, chat_id_str
-            else:
-                return False, chat_id_str
-        except Exception as e:
-            print(f"Error during del_group: {e}")
-            return False, None
-
-    async def get_groups(self):
-        update = json.load(open(self.database))
-        return update.get("gruppi", {})
+                return chat_id
+        
+            async def del_group(self, identifier):
+                try:
+                    update = json.load(open(self.database))
+                    
+                    try:
+                        chat_id = int(identifier)
+                    except ValueError:
+                        chat_id = None
+        
+                    if chat_id is None:
+                        try:
+                            chat = await client.get_chat(identifier)
+                            chat_id = chat.id
+                        except Exception:
+                            pass
+        
+                    if chat_id is not None and chat_id in update["gruppi"]:
+                        del update["gruppi"][chat_id]
+                        await self.save(update)
+                        return True, chat_id
+                    else:
+                        return False, chat_id
+                except Exception as e:
+                    print(f"Error during del_group: {e}")
+                    return False, None
+        
+            async def get_groups(self):
+                update = json.load(open(self.database))
+                return update.get("gruppi", {})
         
     async def load_paypal_link(self):
         update = json.load(open(self.database))
@@ -128,42 +145,41 @@ gruppi = []
 muted_users = {}
 scheduled_tasks = {}
 
-async def send_spam(client: Client, chat_id: int, intervallo: int, messaggio: str):
+async def send_spam(client: Client, username: str, intervallo: int, messaggio: str):
     try:
         while True:
-            print(f"Sending spam message to group {chat_id}")
-            await client.send_message(chat_id, text=messaggio)
-            print(f"Spam message sent to group {chat_id}")
+            print(f"Sending spam message to group {username}")
+            await client.send_message(username, text=messaggio)
+            print(f"Spam message sent to group {username}")
             await asyncio.sleep(intervallo * 60)
     except asyncio.CancelledError:
-        print(f"Spam task for group {chat_id} cancelled.")
+        print(f"Spam task for group {username} cancelled.")
     except Exception as e:
-        print(f"Error while sending spam in group {group_id}: {e}")
+        print(f"Error while sending spam in group {username}: {e}")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client: Client, message: Message):
     try:
-        args = message.text.split(maxsplit=1)
-
-        if len(args) < 2:
-            await message.edit_text("Usage: `.spam <minutes>`")
+        args = message.text.split(maxsplit=2)
+        
+        if len(args) < 3:
+            await message.edit_text("Usage: `.spam <minutes> <messaggio>`")
             return
 
         intervallo = int(args[1])
+        messaggio = args[2]
 
         # Get the list of groups from the database
         groups = await word.get_groups()
-        group_usernames = list(groups.keys())
+        usernames = list(groups.keys())
 
-        for group_username in group_usernames:
+        for username in usernames:
             try:
-                print(f"Trying to send spam to group {group_username}")
-
-                # Get chat information using the username
-                chat = await client.get_chat(group_username)
-
+                print(f"Trying to send spam in group {username}")
+                
                 # Set basic permissions
-                await client.restrict_chat_member(chat.id, user_id=client.me.id, permissions={
+                chat = await client.get_chat(username)
+                await client.restrict_chat_member(username, user_id=client.me.id, permissions={
                     "can_send_messages": True,
                     "can_send_media_messages": True,
                     "can_send_polls": True,
@@ -172,24 +188,17 @@ async def spam_command(client: Client, message: Message):
                     "can_invite_users": True,
                 })
 
-                print(f"Basic permissions set for group {group_username}")
+                print(f"Basic permissions set for group {username}")
 
-                # Forward the replied message to the group
-                if message.reply_to_message:
-                    forward_message = message.reply_to_message.message_id
-                    await client.forward_messages(chat.id, chat.id, message_ids=forward_message)
+                # Add group to the database and get the username as a string
+                await word.add_group(username, intervallo, messaggio)
 
-                    print(f"Spam message forwarded to group {group_username}")
-
-                    # Add group to the database and get the ID as a string
-                    chat_id_str = await word.add_group(chat.id, intervallo, "")
-
-                    task = asyncio.create_task(send_spam(client, chat_id_str, intervallo, ""))
-                    scheduled_tasks[chat_id_str] = task
-                    print(f"Spam task created for group {chat_id_str}")
+                task = asyncio.create_task(send_spam(client, username, intervallo, messaggio))
+                scheduled_tasks[username] = task
+                print(f"Spam task created for group {username}")
 
             except Exception as e:
-                print(f"Error in group {group_username}: {e}")
+                print(f"Error in group {username}: {e}")
 
         await message.edit_text(f"Spam started successfully in all groups.")
     except Exception as e:
@@ -240,70 +249,38 @@ async def percentage_command(client, message):
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
 @ubot.on_message(filters.user("self") & filters.command("addgroup", prefixes="."))
-async def add_group_command(client, message):
-    try:
-        # Estrai il testo del messaggio dopo il comando
-        command_text = message.text.split(' ', 1)[1]
-
-        # Ottieni l'ID del gruppo a partire dal suo username o ID
-        try:
-            chat = await client.get_chat(chat_id=command_text)
-            gruppo_id = chat.id
-        except ValueError:
-            gruppo_id = None
-
-        # Aggiungi il gruppo al database
-        if gruppo_id is not None:
-            group_settings = await word.add_group(gruppo_id, intervallo=5, messaggio="")
-            await message.edit_text(f"Group {gruppo_id} added to the list ")
-        else:
-            await message.edit_text("Invalid group ID or username.")
-    except (ValueError, IndexError):
-        await message.edit_text("Right command: .addgroup [id_group] or [username]")
-
-@ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
-async def group_list_command(client, message):
-    try:
-        groups = await word.get_groups()
-        if groups:
-            group_list = "\n".join([f"{chat_id} (@{group_data['username']})" if 'username' in group_data else f"{chat_id}" for chat_id, group_data in groups.items()])
-            await message.edit_text(f"Group list:\n{group_list}")
-        else:
-            await message.edit_text("No groups found.")
-    except Exception as e:
-        print(f"Error while fetching group list: {e}")
-        await message.edit_text("Error while fetching group list.")
-        
-@ubot.on_message(filters.user("self") & filters.command("delgroup", prefixes="."))
-async def del_group_command(client, message):
-    try:
-        # Estrai il testo del messaggio dopo il comando
-        command_text = message.text.split(' ', 1)[1]
-
-        # Cerca di ottenere direttamente l'ID del gruppo senza sollevare eccezioni
-        chat_id = None
-
-        try:
-            chat_id = int(command_text)
-        except ValueError:
-            pass
-
-        if chat_id is None:
+        async def add_group_command(client, message):
             try:
-                chat = await client.get_chat(command_text)
-                chat_id = chat.id
-            except Exception:
-                pass
-
-        # Rimuovi il gruppo dalla lista e dal database
-        success, removed_group_id = await word.del_group(chat_id)
-        if success:
-            await message.edit_text(f"Group {removed_group_id} successfully removed from the list and database.")
-        else:
-            await message.edit_text(f"Group {removed_group_id} not found in the list.")
-
-    except (ValueError, IndexError):
-        await message.edit_text("Right command: .delgroup [id_group] or [username]")
+                command_text = message.text.split(' ', 1)[1]
+                group_settings = await word.add_group(command_text, intervallo=5, messaggio="")
+                await message.edit_text(f"Group {group_settings} added to the list.")
+            except (ValueError, IndexError):
+                await message.edit_text("Right command: .addgroup [id_group] or [username]")
+        
+        @ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
+        async def group_list_command(client, message):
+            try:
+                groups = await word.get_groups()
+                if groups:
+                    group_list = "\n".join([f"{chat_id} (@{group_data['username']})" if 'username' in group_data else f"{chat_id}" for chat_id, group_data in groups.items()])
+                    await message.edit_text(f"Group list:\n{group_list}")
+                else:
+                    await message.edit_text("No groups found.")
+            except Exception as e:
+                print(f"Error while fetching group list: {e}")
+                await message.edit_text("Error while fetching group list.")
+                
+        @ubot.on_message(filters.user("self") & filters.command("delgroup", prefixes="."))
+        async def del_group_command(client, message):
+            try:
+                command_text = message.text.split(' ', 1)[1]
+                success, removed_group_id = await word.del_group(command_text)
+                if success:
+                    await message.edit_text(f"Group {removed_group_id} successfully removed from the list and database.")
+                else:
+                    await message.edit_text(f"Group {removed_group_id} not found in the list.")
+            except (ValueError, IndexError):
+                await message.edit_text("Right command: .delgroup [id_group] or [username]")n
 
 @ubot.on_message(filters.user("self") & filters.command("ppset", "."))
 async def set_paypal_link(client, message):
@@ -474,6 +451,5 @@ async def delete_muted_messages(client, message):
             await message.delete()
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
-
 
 idle()
