@@ -1,3 +1,4 @@
+
 from sched import scheduler
 from pyrogram import Client, filters, idle
 from pyrogram.raw.functions.messages import StartBot, DeleteHistory, InstallStickerSet
@@ -43,60 +44,63 @@ statusse = False
 ignore = []
 
 # Addword
+import os
+import json
+
 class Database:
-            def __init__(self, file_name: str):
-                self.database = file_name
-                if not os.path.exists(file_name):
-                    with open(file_name, "w") as f:
-                        json.dump({"gruppi": {}}, f)
-        
-            async def save(self, update: dict):
-                with open(self.database, "w") as f:
-                    json.dump(update, f)
-        
-            async def add_group(self, identifier: str, intervallo: int, messaggio: str):
-                update = json.load(open(self.database))
+    def __init__(self, file_name: str):
+        self.database = file_name
+        if not os.path.exists(file_name):
+            with open(file_name, "w") as f:
+                json.dump({"gruppi": {}}, f)
+
+    async def save(self, update: dict):
+        with open(self.database, "w") as f:
+            json.dump(update, f)
+
+    async def add_group(self, identifier: str, intervallo: int, messaggio: str):
+        update = json.load(open(self.database))
+        try:
+            chat_id = int(identifier)
+            chat = await client.get_chat(chat_id)
+            username = chat.username if chat.username else None
+        except ValueError:
+            username = identifier
+
+        update["gruppi"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": username}
+        await self.save(update)
+        return chat_id
+
+    async def del_group(self, identifier):
+        try:
+            update = json.load(open(self.database))
+
+            try:
+                chat_id = int(identifier)
+            except ValueError:
+                chat_id = None
+
+            if chat_id is None:
                 try:
-                    chat_id = int(identifier)
-                    chat = await client.get_chat(chat_id)
-                    username = chat.username if chat.username else None
-                except ValueError:
-                    username = identifier
-        
-                update["gruppi"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": username}
+                    chat = await client.get_chat(identifier)
+                    chat_id = chat.id
+                except Exception:
+                    pass
+
+            if chat_id is not None and chat_id in update["gruppi"]:
+                del update["gruppi"][chat_id]
                 await self.save(update)
-                return chat_id
-        
-            async def del_group(self, identifier):
-                try:
-                    update = json.load(open(self.database))
-                    
-                    try:
-                        chat_id = int(identifier)
-                    except ValueError:
-                        chat_id = None
-        
-                    if chat_id is None:
-                        try:
-                            chat = await client.get_chat(identifier)
-                            chat_id = chat.id
-                        except Exception:
-                            pass
-        
-                    if chat_id is not None and chat_id in update["gruppi"]:
-                        del update["gruppi"][chat_id]
-                        await self.save(update)
-                        return True, chat_id
-                    else:
-                        return False, chat_id
-                except Exception as e:
-                    print(f"Error during del_group: {e}")
-                    return False, None
-        
-            async def get_groups(self):
-                update = json.load(open(self.database))
-                return update.get("gruppi", {})
-        
+                return True, chat_id
+            else:
+                return False, chat_id
+        except Exception as e:
+            print(f"Error during del_group: {e}")
+            return False, None
+
+    async def get_groups(self):
+        update = json.load(open(self.database))
+        return update.get("gruppi", {})
+
     async def load_paypal_link(self):
         update = json.load(open(self.database))
         return update.get("paypal_link")
@@ -123,7 +127,7 @@ class Database:
         update = json.load(open(self.database))
         update["bitcoin_link"] = link
         await self.save(update)
-        
+
     async def load_ethereum_link(self):
         update = json.load(open(self.database))
         return update.get("ethereum_link")
@@ -132,7 +136,6 @@ class Database:
         update = json.load(open(self.database))
         update["ethereum_link"] = link
         await self.save(update)
-
 
 word = Database("word.json")
 
