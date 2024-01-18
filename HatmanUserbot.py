@@ -133,6 +133,7 @@ async def spam_command(client, message):
                 default_permissions = await chat.default_permissions
                 await client.set_chat_permissions(
                     chat_id=group_id,
+                    permissions=default_permissions
                 )
                 print(f"Permissions set for group {group_id}")
             except Exception as e:
