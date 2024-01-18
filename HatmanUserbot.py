@@ -56,26 +56,26 @@ class Database:
     async def save(self, update: dict):
         with open(self.database, "w") as f:
             json.dump(update, f)
-            
-    async def add_group(self, identifier: str, intervallo: int, messaggio: str):
-        update = json.load(open(self.database))
-        chat_id = None
     
-        try:
-            chat_id = int(identifier)
-        except ValueError:
+    async def add_group(self, identifier: str, intervallo: int, messaggio: str, username: str):
+            update = json.load(open(self.database))
+            chat_id = None
+        
             try:
-                chat = await client.get_chat(identifier)
-                chat_id = chat.id
-            except Exception:
-                pass
-    
-        if chat_id is not None:
-            username = identifier if isinstance(chat_id, int) else (chat.username if chat.username else None)
-            update["gruppi"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": username}
-            await self.save(update)
-    
-        return chat_id
+                chat_id = int(identifier)
+            except ValueError:
+                try:
+                    chat = await client.get_chat(identifier)
+                    chat_id = chat.id
+                except Exception:
+                    pass
+        
+            if chat_id is not None:
+                username = identifier if isinstance(chat_id, int) else (chat.username if chat.username else None)
+                update["gruppi"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": username}
+                await self.save(update)
+        
+            return chat_id
     
     async def del_group(self, identifier):
         try:
