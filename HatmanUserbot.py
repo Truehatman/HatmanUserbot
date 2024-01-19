@@ -166,7 +166,9 @@ async def spam_command(client, message):
             )
         await message.edit_text(f"Spam on! I will send the message every {intervallo} minutes in all groups.")
     except (ValueError, IndexError):
-        await message.edit_text("Right command: .spam [minutes] [message]")@ubot.on_message(filters.command("stopspam", prefixes="."))
+        await message.edit_text("Right command: .spam [minutes] [message]")
+
+@ubot.on_message(filters.command("stopspam", prefixes="."))
 async def stop_spam_command(client, message):
     try:
         global scheduled_tasks
