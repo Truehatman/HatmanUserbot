@@ -144,29 +144,29 @@ muted_users = {}
 scheduled_tasks = {}
 
 async def send_spam(client: Client, username: str, intervallo: int, messaggio: str):
-    try:
-        while True:
-            print(f"Sending spam message to group {username}")
-            
             try:
-                # Simula un'azione di invio di messaggi
-                await client.send_chat_action(username, "typing")
-                
-                # Attendere un breve periodo di tempo per simulare l'invio del messaggio
-                await asyncio.sleep(2)
-
-                # Invia il messaggio di spam
-                await client.send_message(username, text=messaggio)
-                
-                print(f"Spam message sent to group {username}")
+                while True:
+                    print(f"Sending spam message to group {username}")
+                    
+                    try:
+                        # Simula un'azione di invio di messaggi
+                        await client.send_chat_action(username, "typing")
+                        
+                        # Attendere un breve periodo di tempo per simulare l'invio del messaggio
+                        await asyncio.sleep(2)
+        
+                        # Invia il messaggio di spam
+                        await client.send_message(username, text=messaggio)
+                        
+                        print(f"Spam message sent to group {username}")
+                    except Exception as e:
+                        print(f"Error while sending spam in group {username}: {e}")
+        
+                    await asyncio.sleep(intervallo * 60)
+            except asyncio.CancelledError:
+                print(f"Spam task for group {username} cancelled.")
             except Exception as e:
-                print(f"Error while sending spam in group {username}: {e}")
-
-            await asyncio.sleep(intervallo * 60)
-    except asyncio.CancelledError:
-        print(f"Spam task for group {username} cancelled.")
-    except Exception as e:
-        print(f"Error in send_spam: {e}")
+                print(f"Error in send_spam: {e}")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spam_command(client: Client, message: Message):
