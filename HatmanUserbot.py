@@ -154,7 +154,7 @@ async def spam_command(client, message):
         intervallo = int(command_text[0])
         messaggio = command_text[1]
 
-        @ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
+@ubot.on_message(filters.user("self") & filters.command("spam", prefixes="."))
 async def spam_command(client, message):
     try:
         gruppi = await word.get_groups()
