@@ -147,6 +147,8 @@ scheduled_tasks = {}
 async def spam_command(client, message):
     try:
         gruppi = await word.get_groups()
+        chat_id = int(command_text[0]) if command_text[0].isdigit() else 0
+        gruppo_id = chat_id
         global scheduled_tasks
         command_text = message.text.split(' ', 2)[1:]
         intervallo = int(command_text[0])
