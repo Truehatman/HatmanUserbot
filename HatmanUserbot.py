@@ -42,17 +42,15 @@ IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
 statusse = False
 ignore = []
 
-# Addword
-import os
-import json
-
-try:
-    userbotspammer = sqlite3.connect("userbot.db")
-    userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
-except:
-    pass
-
 class Database:
+    def __init__(self, filename):
+        self.database = filename
+
+    try:
+        userbotspammer = sqlite3.connect("userbot.db")
+        userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
+    except:
+        pass
     
     async def load_paypal_link(self):
         update = json.load(open(self.database))
