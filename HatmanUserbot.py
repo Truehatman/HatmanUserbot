@@ -46,6 +46,8 @@ ignore = []
 import os
 import json
 
+class Database:
+
 try:
     userbotspammer = sqlite3.connect("userbot.db")
     userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
