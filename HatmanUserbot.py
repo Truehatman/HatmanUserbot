@@ -94,7 +94,7 @@ paypal_link = None
 litecoin_link = None
 bitcoin_link = None
 ethereum_link = None
-Spamcheck = False
+spamcheck = False
 
 muted_users = {}
 scheduled_tasks = {}
