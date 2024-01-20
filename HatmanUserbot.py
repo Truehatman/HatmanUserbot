@@ -42,16 +42,16 @@ IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
 statusse = False
 ignore = []
 
+try:
+    userbotspammer = sqlite3.connect("userbot.db")
+    userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
+except:
+    pass
+
 class Database:
     def __init__(self, filename):
         self.database = filename
 
-    try:
-        userbotspammer = sqlite3.connect("userbot.db")
-        userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
-    except:
-        pass
-    
     async def load_paypal_link(self):
         update = json.load(open(self.database))
         return update.get("paypal_link")
@@ -167,7 +167,7 @@ async def tempo(_, message):
         try:
             int(minuti)
             if int(minuti) >= 300:
-                timespam = int(minuti)
+                timespam = int(minuti / 60)
                 await message.edit(f"Time set on {timespam} minutes")
                 pass
             else:
