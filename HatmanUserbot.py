@@ -47,12 +47,11 @@ import os
 import json
 
 class Database:
-
-try:
-    userbotspammer = sqlite3.connect("userbot.db")
-    userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
-except:
-    pass
+    try:
+       userbotspammer = sqlite3.connect("userbot.db")
+       userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
+    except:
+        pass
 
     async def load_paypal_link(self):
         update = json.load(open(self.database))
