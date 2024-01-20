@@ -105,7 +105,6 @@ async def groupadd(_, message):
     try:
         print(message.chat.type)
         if str(message.chat.type) == "ChatType.GROUP":
-            print("@clipedez")
             group = message.chat.id
             gruppo = await ubot.get_chat(group)
             userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [gruppo.id])
@@ -114,7 +113,7 @@ async def groupadd(_, message):
                 await ubot.join_chat(gruppo)
             except:
                 pass
-            await message.edit(f"Gruppo {gruppo.title} aggiunto")
+            await message.edit(f"Group {gruppo.title} added")
         else:
             group = message.text.split(" ")[1]
             gruppo = await ubot.get_chat(group)
@@ -124,7 +123,7 @@ async def groupadd(_, message):
                 await ubot.join_chat(group)
             except:
                 pass
-            await message.edit(f"{gruppo.title} aggiunto!")
+            await message.edit(f"{gruppo.title} added!")
     except:
         traceback.print_exc() #errori
         await message.edit(" Errore in .addgroup!")
@@ -134,26 +133,26 @@ async def rimuovigruppo(_, message):
     try:
         count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
         if count == 0:
-            await message.edit(" Non ci sono Gruppi!")
+            await message.edit("There are no groups !")
         else:
             group = await ubot.get_chat(message.text.split(" ")[1])
             userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group.id])
             userbotspammer.commit()
-            await message.edit(f" Gruppo {group.title} Ã¨ stato rimosso!")
+            await message.edit(f" Group {group.title} Ã¨removed!")
     except:
         group = await ubot.get_chat(message.text.split(" ")[1])
-        await message.edit(f" Errore in .remgroup {group.title}")
+        await message.edit(f" Error in .remgroup {group.title}")
 
 @ubot.on_message(filters.user("self") & filters.command("grouplist", "."))
 async def listagruppi(_, message):
     count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
     if count == 0:
-        await message.edit(" Non ci sono Gruppi!")
+        await message.edit(" There are no group!")
     else:
         gruppimsg = ""
         for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
             gruppimsg += f"â¥ {(await ubot.get_chat(gruppi)).title} | <code>{(await ubot.get_chat(gruppi)).id}</code>\n\n"
-        await message.edit(f"<b> Â» Lista Gruppi:</b>\n\n{gruppimsg}")
+        await message.edit(f"<b> Â» Group List:</b>\n\n{gruppimsg}")
         
 
 timespam = None
@@ -163,38 +162,39 @@ messaggio = ""
 async def tempo(_, message):
     global timespam
     minuti = message.text.split(" ")[1]
+    minuti = minuti * 60
     if len(message.text.split(" ")) > 1:
         try:
             int(minuti)
             if int(minuti) >= 300:
                 timespam = int(minuti)
-                await message.edit(f"Tempo impostato su {timespam} secondi")
+                await message.edit(f"Time set on {timespam} minutes")
                 pass
             else:
-                await message.edit("Il minimo sono 300 secondi")
-                return
+                await message.edit("Min is 5 minutes")
+                return 
         except:
-            return await message.edit(" Specifica il tempo in secondi")
+            return await message.edit("Time has to be more than 5 minutes ")
 
 @ubot.on_message(filters.user("self") & filters.command("setmex", "."))
 async def setmex(_, message):
     global messaggio
     try:
         messaggio = message.text.replace(f".setmex", "")
-        await message.edit(f" Messaggio impostato\n\n <code>{messaggio}</code>")
+        await message.edit(f" Message set\n\n <code>{messaggio}</code>")
     except:
-        await message.edit("Formato non corretto, .setmex Messaggio")
+        await message.edit("Format wrong, .setmex Messaggio")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spamavviato(_, message):
     global spamcheck
     count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
     if count == 0:
-        await message.edit(" Non ci sono Gruppi!")
+        await message.edit(" There are no Groups!")
     else:
         if not spamcheck:
             spamcheck = True
-            await message.edit(f" Spam iniziato. Sto spammando in {count} gruppi")
+            await message.edit(f" Spam started. Im spamming in {count} groups")
             while spamcheck:
                 for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
                     try:
@@ -204,25 +204,16 @@ async def spamavviato(_, message):
                          await asyncio.sleep(0.5)
                 await asyncio.sleep(int(timespam))
         else:
-            await message.edit("Formato non corretto, .spam")
-
-
-
-@ubot.on_message(filters.user("self") & filters.command(["sm"], "."))
-async def Sm(_, message):
-    minuti = message.text.split(" ")[1]
-    total = int(minuti) * 60
-    await message.edit(f" {minuti} Minuti in secondi sono: {total}")
-
+            await message.edit("Format wrong, .spam")
 
 @ubot.on_message(filters.user("self") & filters.command("stop", "."))
 async def stopspam(_, message):
     global spamcheck
     if spamcheck:
         spamcheck = False
-        await message.edit(" Spam terminato")
+        await message.edit(" Spam end")
     else:
-        await message.edit(" Spam non avviato")
+        await message.edit(" Spam not started")
 
 
 
