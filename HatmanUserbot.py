@@ -94,7 +94,7 @@ paypal_link = None
 litecoin_link = None
 bitcoin_link = None
 ethereum_link = None
-
+Spamcheck = False
 
 muted_users = {}
 scheduled_tasks = {}
@@ -161,20 +161,18 @@ messaggio = ""
 @ubot.on_message(filters.user("self") & filters.command("time", "."))
 async def tempo(_, message):
     global timespam
-    minuti = message.text.split(" ")[1]
-    minuti = minuti * 60
     if len(message.text.split(" ")) > 1:
         try:
-            int(minuti)
-            if int(minuti) >= 300:
-                timespam = int(minuti / 60)
+            minuti = int(message.text.split(" ")[1])
+            secondi = minuti * 60
+            if secondi >= 300:
+                timespam = int(minuti)
                 await message.edit(f"Time set on {timespam} minutes")
-                pass
+                timespam = int(secondi)
             else:
                 await message.edit("Min is 5 minutes")
-                return 
-        except:
-            return await message.edit("Time has to be more than 5 minutes ")
+        except ValueError:
+            await message.edit("Please provide a valid number of minutes")
 
 @ubot.on_message(filters.user("self") & filters.command("setmex", "."))
 async def setmex(_, message):
