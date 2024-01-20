@@ -48,8 +48,18 @@ try:
 except:
     pass
 
-    def __init__(self, filename):
-        self.database = filename
+
+class Database:
+    class Database:
+    def __init__(self, file_name: str):
+        self.database = file_name
+        if not os.path.exists(file_name):
+            with open(file_name, "w") as f:
+                json.dump({"database": {}}, f)
+
+    async def save(self, update: dict):
+        with open(self.database, "w") as f:
+            json.dump(update, f)
 
     async def load_paypal_link(self):
         update = json.load(open(self.database))
@@ -87,7 +97,7 @@ except:
         update["ethereum_link"] = link
         await self.save(update)
 
-
+word = Database("word.json")
 
 paypal_link = None
 litecoin_link = None
