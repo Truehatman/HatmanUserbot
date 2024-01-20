@@ -57,7 +57,7 @@ class Database:
         with open(self.database, "w") as f:
             json.dump(update, f)
             
-    async def add_group(self, identifier: str, intervallo: int, messaggio: str, username: str):
+    async def add_group(self, identifier: int, intervallo: int, messaggio: str, username: str):
         update = json.load(open(self.database))
         chat_id = None
     
