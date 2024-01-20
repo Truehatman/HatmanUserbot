@@ -48,7 +48,6 @@ try:
 except:
     pass
 
-class Database:
     def __init__(self, filename):
         self.database = filename
 
@@ -88,7 +87,7 @@ class Database:
         update["ethereum_link"] = link
         await self.save(update)
 
-word = Database("word.json")
+
 
 paypal_link = None
 litecoin_link = None
