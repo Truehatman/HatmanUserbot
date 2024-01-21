@@ -35,30 +35,49 @@ from pyrogram.errors import PeerIdInvalid
 print("HatManUserbot started..")
 print("#######################")
 
-ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
+ubot = Client("killersession", api_id=1737, api_hash="84848eud83", lang_code="it")
 ubot.start()
 
 IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
 statusse = False
 ignore = []
 
+# Addword
+import os
+import json
+
+class Database:
+    def __init__(self, file_name: str):
+        self.database = file_name
+        if os.path.exists(file_name) == False:
+            f = open(file_name, "a+")
+            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False}))
+            f.close()
+
+    async def save(self, update: dict):
+        os.remove(self.database)
+        f = open(self.database, "a+")
+        f.write(json.dumps(update))
+        f.close()
+
+    async def add_word(self, word: str, risposta: str):
+        update = json.load(open(self.database))
+        update["word"][str(word)] = risposta
+        await self.save(update)
+        return json.load(open(self.database))["word"][word]
+
+    async def add_wordr(self, word: str, risposta: str):
+        update = json.load(open(self.database))
+        update["wordr"][str(word)] = risposta
+        await self.save(update)
+        return json.load(open(self.database))["wordr"][word]
+word = Database("word.json")
+
 try:
     userbotspammer = sqlite3.connect("userbot.db")
     userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
 except:
     pass
-
-
-class Database:
-    def __init__(self, file_name: str):
-        self.database = file_name
-        if not os.path.exists(file_name):
-            with open(file_name, "w") as f:
-                json.dump({"database": {}}, f)
-
-    async def save(self, update: dict):
-        with open(self.database, "w") as f:
-            json.dump(update, f)
 
     async def load_paypal_link(self):
         update = json.load(open(self.database))
@@ -102,7 +121,7 @@ paypal_link = None
 litecoin_link = None
 bitcoin_link = None
 ethereum_link = None
-spamcheck = False
+
 
 muted_users = {}
 scheduled_tasks = {}
@@ -113,6 +132,7 @@ async def groupadd(_, message):
     try:
         print(message.chat.type)
         if str(message.chat.type) == "ChatType.GROUP":
+            print("@clipedez")
             group = message.chat.id
             gruppo = await ubot.get_chat(group)
             userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [gruppo.id])
@@ -121,7 +141,7 @@ async def groupadd(_, message):
                 await ubot.join_chat(gruppo)
             except:
                 pass
-            await message.edit(f"Group {gruppo.title} added")
+            await message.edit(f"Gruppo {gruppo.title} aggiunto")
         else:
             group = message.text.split(" ")[1]
             gruppo = await ubot.get_chat(group)
@@ -131,7 +151,7 @@ async def groupadd(_, message):
                 await ubot.join_chat(group)
             except:
                 pass
-            await message.edit(f"{gruppo.title} added!")
+            await message.edit(f"{gruppo.title} aggiunto!")
     except:
         traceback.print_exc() #errori
         await message.edit(" Errore in .addgroup!")
@@ -141,26 +161,26 @@ async def rimuovigruppo(_, message):
     try:
         count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
         if count == 0:
-            await message.edit("There are no groups !")
+            await message.edit(" Non ci sono Gruppi!")
         else:
             group = await ubot.get_chat(message.text.split(" ")[1])
             userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group.id])
             userbotspammer.commit()
-            await message.edit(f" Group {group.title} Ã¨removed!")
+            await message.edit(f" Gruppo {group.title} Ã¨ stato rimosso!")
     except:
         group = await ubot.get_chat(message.text.split(" ")[1])
-        await message.edit(f" Error in .remgroup {group.title}")
+        await message.edit(f" Errore in .remgroup {group.title}")
 
 @ubot.on_message(filters.user("self") & filters.command("grouplist", "."))
 async def listagruppi(_, message):
     count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
     if count == 0:
-        await message.edit(" There are no group!")
+        await message.edit(" Non ci sono Gruppi!")
     else:
         gruppimsg = ""
         for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
             gruppimsg += f"â¥ {(await ubot.get_chat(gruppi)).title} | <code>{(await ubot.get_chat(gruppi)).id}</code>\n\n"
-        await message.edit(f"<b> Â» Group List:</b>\n\n{gruppimsg}")
+        await message.edit(f"<b> Â» Lista Gruppi:</b>\n\n{gruppimsg}")
         
 
 timespam = None
@@ -169,38 +189,39 @@ messaggio = ""
 @ubot.on_message(filters.user("self") & filters.command("time", "."))
 async def tempo(_, message):
     global timespam
+    minuti = message.text.split(" ")[1]
     if len(message.text.split(" ")) > 1:
         try:
-            minuti = int(message.text.split(" ")[1])
-            secondi = minuti * 60
-            if secondi >= 300:
+            int(minuti)
+            if int(minuti) >= 300:
                 timespam = int(minuti)
-                await message.edit(f"Time set on {timespam} minutes")
-                timespam = int(secondi)
+                await message.edit(f"Tempo impostato su {timespam} secondi")
+                pass
             else:
-                await message.edit("Min is 5 minutes")
-        except ValueError:
-            await message.edit("Please provide a valid number of minutes")
+                await message.edit("Il minimo sono 300 secondi")
+                return
+        except:
+            return await message.edit(" Specifica il tempo in secondi")
 
 @ubot.on_message(filters.user("self") & filters.command("setmex", "."))
 async def setmex(_, message):
     global messaggio
     try:
         messaggio = message.text.replace(f".setmex", "")
-        await message.edit(f" Message set\n\n <code>{messaggio}</code>")
+        await message.edit(f" Messaggio impostato\n\n <code>{messaggio}</code>")
     except:
-        await message.edit("Format wrong, .setmex Messaggio")
+        await message.edit("Formato non corretto, .setmex Messaggio")
 
 @ubot.on_message(filters.user("self") & filters.command("spam", "."))
 async def spamavviato(_, message):
     global spamcheck
     count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
     if count == 0:
-        await message.edit(" There are no Groups!")
+        await message.edit(" Non ci sono Gruppi!")
     else:
         if not spamcheck:
             spamcheck = True
-            await message.edit(f" Spam started. Im spamming in {count} groups")
+            await message.edit(f" Spam iniziato. Sto spammando in {count} gruppi")
             while spamcheck:
                 for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
                     try:
@@ -210,16 +231,25 @@ async def spamavviato(_, message):
                          await asyncio.sleep(0.5)
                 await asyncio.sleep(int(timespam))
         else:
-            await message.edit("Format wrong, .spam")
+            await message.edit("Formato non corretto, .spam")
+
+
+
+@ubot.on_message(filters.user("self") & filters.command(["sm"], "."))
+async def Sm(_, message):
+    minuti = message.text.split(" ")[1]
+    total = int(minuti) * 60
+    await message.edit(f" {minuti} Minuti in secondi sono: {total}")
+
 
 @ubot.on_message(filters.user("self") & filters.command("stop", "."))
 async def stopspam(_, message):
     global spamcheck
     if spamcheck:
         spamcheck = False
-        await message.edit(" Spam end")
+        await message.edit(" Spam terminato")
     else:
-        await message.edit(" Spam not started")
+        await message.edit(" Spam non avviato")
 
 
 
