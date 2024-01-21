@@ -35,7 +35,7 @@ from pyrogram.errors import PeerIdInvalid
 print("HatManUserbot started..")
 print("#######################")
 
-ubot = Client("killersession", api_id=1737, api_hash="84848eud83", lang_code="it")
+ubot = Client("killersession", api_id=25047326, api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
 ubot.start()
 
 IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
@@ -46,38 +46,71 @@ ignore = []
 import os
 import json
 
-class Database:
-    def __init__(self, file_name: str):
-        self.database = file_name
-        if os.path.exists(file_name) == False:
-            f = open(file_name, "a+")
-            f.write(json.dumps({"word": {}, "wordr": {}, "sticker": False}))
-            f.close()
-
-    async def save(self, update: dict):
-        os.remove(self.database)
-        f = open(self.database, "a+")
-        f.write(json.dumps(update))
-        f.close()
-
-    async def add_word(self, word: str, risposta: str):
-        update = json.load(open(self.database))
-        update["word"][str(word)] = risposta
-        await self.save(update)
-        return json.load(open(self.database))["word"][word]
-
-    async def add_wordr(self, word: str, risposta: str):
-        update = json.load(open(self.database))
-        update["wordr"][str(word)] = risposta
-        await self.save(update)
-        return json.load(open(self.database))["wordr"][word]
-word = Database("word.json")
-
 try:
     userbotspammer = sqlite3.connect("userbot.db")
     userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
 except:
     pass
+
+class Database:
+    def __init__(self, file_name: str):
+        self.database = file_name
+        if not os.path.exists(file_name):
+            with open(file_name, "w") as f:
+                json.dump({"gruppi": {}}, f)
+
+    async def save(self, update: dict):
+        with open(self.database, "w") as f:
+            json.dump(update, f)
+            
+    async def add_group(self, identifier: str, intervallo: int, messaggio: str, username: str):
+        update = json.load(open(self.database))
+        chat_id = None
+    
+        try:
+            chat_id = int(identifier)
+        except ValueError:
+            try:
+                chat = await client.get_chat(identifier)
+                chat_id = chat.id
+            except Exception:
+                pass
+    
+        if chat_id is not None:
+            group_username = username if isinstance(chat_id, int) else (chat.username if chat.username else None)
+            update["gruppi"][chat_id] = {"intervallo": intervallo, "messaggio": messaggio, "username": group_username}
+            await self.save(update)
+    
+        return chat_id
+    async def del_group(self, identifier):
+        try:
+            update = json.load(open(self.database))
+
+            try:
+                chat_id = int(identifier)
+            except ValueError:
+                chat_id = None
+
+            if chat_id is None:
+                try:
+                    chat = await client.get_chat(identifier)
+                    chat_id = chat.id
+                except Exception:
+                    pass
+
+            if chat_id is not None and chat_id in update["gruppi"]:
+                del update["gruppi"][chat_id]
+                await self.save(update)
+                return True, chat_id
+            else:
+                return False, chat_id
+        except Exception as e:
+            print(f"Error during del_group: {e}")
+            return False, None
+
+    async def get_groups(self):
+        update = json.load(open(self.database))
+        return update.get("gruppi", {})
 
     async def load_paypal_link(self):
         update = json.load(open(self.database))
