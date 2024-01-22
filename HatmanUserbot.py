@@ -157,20 +157,20 @@ messaggio = ""
 @ubot.on_message(filters.user("self") & filters.command("time", "."))
 async def tempo(_, message):
     global timespam
-    minuti = message.text.split(" ")[1]
     if len(message.text.split(" ")) > 1:
+        minuti = message.text.split(" ")[1]
         try:
-            int(minuti)
+            minuti = int(minuti)
             secondi = minuti * 60
             if secondi >= 300:
-                timespam = int(minuti)
+                timespam = minuti
                 await message.edit(f"Time set on {timespam} minutes")
-                pass
             else:
                 await message.edit("Min is 5 minutes")
-                return
-        except:
-            return await message.edit(" put time in minutes")
+        except ValueError:
+            await message.edit("Put a valid integer for the time in minutes")
+    else:
+        await message.edit("Please specify the time in minutes.")
 
 @ubot.on_message(filters.user("self") & filters.command("setmex", "."))
 async def setmex(_, message):
