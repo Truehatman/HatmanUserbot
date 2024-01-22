@@ -101,30 +101,29 @@ scheduled_tasks = {}
 @ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
 async def groupadd(_, message):
     try:
-        print(message.chat.type)
-        if str(message.chat.type) == "ChatType.GROUP":
-            group = message.chat.id
-            gruppo = await ubot.get_chat(group)
-            userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [gruppo.id])
+        if message.chat.type == "group":
+            group_id = message.chat.id
+            userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [group_id])
             userbotspammer.commit()
             try:
-                await ubot.join_chat(gruppo)
+                await ubot.join_chat(group_id)
             except:
                 pass
-            await message.edit(f"Group {gruppo.title} added")
+            await message.edit(f"Group {message.chat.title} added")
+        elif message.text == ".addgroup":
+            await message.edit("Please use .addgroup in a group chat to add it.")
         else:
-            group = message.text.split(" ")[1]
-            gruppo = await ubot.get_chat(group)
-            userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [gruppo.id])
+            group_id = message.text.split(" ")[1]
+            userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [group_id])
             userbotspammer.commit()
             try:
-                await ubot.join_chat(group)
+                await ubot.join_chat(group_id)
             except:
                 pass
-            await message.edit(f"{gruppo.title} added!")
-    except:
-        traceback.print_exc() #errori
-        await message.edit(" Error in .addgroup!")
+            await message.edit(f"Group added!")
+    except Exception as e:
+        print(e)
+        await message.edit("Error in .addgroup!")
 
 @ubot.on_message(filters.user("self") & filters.command("remgroup", "."))
 async def rimuovigruppo(_, message):
