@@ -63,16 +63,18 @@ except:
     pass
 
 
-async def save_link(link, table_name, cursor):
+async def save_link(link, table_name, connection):
     try:
+        cursor = connection.cursor()
         cursor.execute(f"DELETE FROM {table_name}")
         cursor.execute(f"INSERT INTO {table_name} (link) VALUES (?)", (link,))
-        userbotspammer.commit()
+        connection.commit()
     except Exception as e:
         print(f"Errore durante il salvataggio del link: {e}")
 
-async def load_link(table_name, cursor):
+async def load_link(table_name, connection):
     try:
+        cursor = connection.cursor()
         cursor.execute(f"SELECT link FROM {table_name} LIMIT 1")
         result = cursor.fetchone()
         if result:
@@ -244,7 +246,7 @@ async def set_generic_link(client, message):
         table_name = command_parts[1]
         link_value = command_parts[2]
 
-        await save_link(link_value, table_name, cursor)
+        await save_link(link_value, table_name, userbotspammer)
 
         await message.edit_text(f"Link for {table_name} set successfully.")
     except (IndexError, ValueError):
@@ -255,7 +257,7 @@ async def get_generic_link(client, message):
     try:
         table_name = message.text.split(' ', 1)[1]
 
-        link_value = await load_link(table_name, cursor)
+        link_value = await load_link(table_name, userbotspammer)
         if link_value:
             await message.edit_text(f"Link for {table_name}:\n{link_value}")
         else:
@@ -268,20 +270,7 @@ async def direct_link_command(client, message):
     try:
         table_name = message.text[1:]
 
-        link_value = await load_link(table_name, cursor)
-        if link_value:
-            await message.edit_text(f"{link_value}")
-        else:
-            await message.edit_text(f"No link set for {table_name}. Use .setlink to set a link.")
-    except (IndexError, ValueError):
-        await message.edit_text(f"Right command format: .{table_name}")
-        
-@ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
-async def direct_link_command(client, message):
-    try:
-        table_name = message.text[1:]
-
-        link_value = await load_link(table_name)
+        link_value = await load_link(table_name, userbotspammer)
         if link_value:
             await message.edit_text(f"{link_value}")
         else:
