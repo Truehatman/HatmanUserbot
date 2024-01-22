@@ -262,6 +262,19 @@ async def get_generic_link(client, message):
             await message.edit_text(f"No link set for {table_name}. Use .setlink to set a link.")
     except (IndexError, ValueError):
         await message.edit_text("Right command: .getlink [table_name]")
+
+@ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
+async def direct_link_command(client, message):
+    try:
+        table_name = message.text[1:]
+
+        link_value = await load_link(table_name, cursor)
+        if link_value:
+            await message.edit_text(f"{link_value}")
+        else:
+            await message.edit_text(f"No link set for {table_name}. Use .setlink to set a link.")
+    except (IndexError, ValueError):
+        await message.edit_text(f"Right command format: .{table_name}")
         
 @ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
 async def direct_link_command(client, message):
