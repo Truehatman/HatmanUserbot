@@ -62,9 +62,14 @@ try:
 except:
     pass
 
+async def create_table_if_not_exists(table_name, connection):
+    cursor = connection.cursor()
+    cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} (id INTEGER PRIMARY KEY, link TEXT)")
+    connection.commit()
 
 async def save_link(link, table_name, connection):
     try:
+        await create_table_if_not_exists(table_name, connection)
         cursor = connection.cursor()
         cursor.execute(f"DELETE FROM {table_name}")
         cursor.execute(f"INSERT INTO {table_name} (link) VALUES (?)", (link,))
@@ -74,6 +79,7 @@ async def save_link(link, table_name, connection):
 
 async def load_link(table_name, connection):
     try:
+        await create_table_if_not_exists(table_name, connection)
         cursor = connection.cursor()
         cursor.execute(f"SELECT link FROM {table_name} LIMIT 1")
         result = cursor.fetchone()
