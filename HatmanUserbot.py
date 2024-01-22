@@ -87,7 +87,7 @@ async def load_link(table_name):
                         return None
 
 
-spamcheck = false
+spamcheck = False
 
 muted_users = {}
 scheduled_tasks = {}
