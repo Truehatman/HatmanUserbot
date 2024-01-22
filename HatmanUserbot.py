@@ -1,5 +1,4 @@
-
-
+#HatmanUserbot
 from sched import scheduler
 from pyrogram import Client, filters, idle
 from pyrogram.raw.functions.messages import StartBot, DeleteHistory, InstallStickerSet
@@ -75,8 +74,7 @@ async def save_link(link, table_name):
                         userbotspammer.commit()
                     except Exception as e:
                         print(f"Errore durante il salvataggio del link: {e}")
-
-                async def load_link(table_name):
+async def load_link(table_name):
                     try:
                         cursor.execute(f"SELECT link FROM {table_name} LIMIT 1")
                         result = cursor.fetchone()
