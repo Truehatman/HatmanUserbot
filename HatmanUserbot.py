@@ -140,16 +140,12 @@ async def rimuovigruppo(_, message):
 async def listagruppi(_, message):
     count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
     if count == 0:
-        await message.edit(" There are  no group!")
+        await message.edit("There are no groups!")
     else:
         gruppimsg = ""
         for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
-            gruppimsg += f"â¥ {(await ubot.get_chat(gruppi)).title} | <code>{(await ubot.get_chat(gruppi)).id}</code>
-
-"
-        await message.edit(f"<b> Group list:</b>
-
-{gruppimsg}")
+            gruppimsg += f"â¥ {(await ubot.get_chat(gruppi)).title} | <code>{(await ubot.get_chat(gruppi)).id}</code>\n"
+        await message.edit(f"<b>Group list:</b>\n{gruppimsg}")
         
 
 timespam = None
