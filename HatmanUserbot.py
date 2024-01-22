@@ -63,28 +63,25 @@ except:
     pass
 
 
-async def save_link(link, table_name):
-                    try:
-                        # Elimina eventuali link esistenti nella tabella specificata
-                        cursor.execute(f"DELETE FROM {table_name}")
+async def save_link(link, table_name, cursor):
+    try:
+        cursor.execute(f"DELETE FROM {table_name}")
+        cursor.execute(f"INSERT INTO {table_name} (link) VALUES (?)", (link,))
+        userbotspammer.commit()
+    except Exception as e:
+        print(f"Errore durante il salvataggio del link: {e}")
 
-                        # Inserisci il nuovo link
-                        cursor.execute(
-                            f"INSERT INTO {table_name} (link) VALUES (?)", (link,))
-                        userbotspammer.commit()
-                    except Exception as e:
-                        print(f"Errore durante il salvataggio del link: {e}")
-async def load_link(table_name):
-                    try:
-                        cursor.execute(f"SELECT link FROM {table_name} LIMIT 1")
-                        result = cursor.fetchone()
-                        if result:
-                            return result[0]
-                        else:
-                            return None
-                    except Exception as e:
-                        print(f"Errore durante il recupero del link: {e}")
-                        return None
+async def load_link(table_name, cursor):
+    try:
+        cursor.execute(f"SELECT link FROM {table_name} LIMIT 1")
+        result = cursor.fetchone()
+        if result:
+            return result[0]
+        else:
+            return None
+    except Exception as e:
+        print(f"Errore durante il recupero del link: {e}")
+        return None
 
 
 spamcheck = False
@@ -144,9 +141,8 @@ async def listagruppi(_, message):
     else:
         gruppimsg = ""
         for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
-            gruppimsg += f"â¥ {(await ubot.get_chat(gruppi)).title} | <code>{(await ubot.get_chat(gruppi)).id}</code>\n"
+            gruppimsg += f"➜ {(await ubot.get_chat(gruppi)).title} | <code>{(await ubot.get_chat(gruppi)).id}</code>\n"
         await message.edit(f"<b>Group list:</b>\n{gruppimsg}")
-        
 
 timespam = None
 messaggio = ""
@@ -248,7 +244,7 @@ async def set_generic_link(client, message):
         table_name = command_parts[1]
         link_value = command_parts[2]
 
-        await save_link(link_value, table_name)
+        await save_link(link_value, table_name, cursor)
 
         await message.edit_text(f"Link for {table_name} set successfully.")
     except (IndexError, ValueError):
@@ -259,7 +255,7 @@ async def get_generic_link(client, message):
     try:
         table_name = message.text.split(' ', 1)[1]
 
-        link_value = await load_link(table_name)
+        link_value = await load_link(table_name, cursor)
         if link_value:
             await message.edit_text(f"Link for {table_name}:\n{link_value}")
         else:
