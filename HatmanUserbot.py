@@ -174,9 +174,7 @@ async def setmex(_, message):
     global messaggio
     try:
         messaggio = message.text.replace(f".setmex", "")
-        await message.edit(f" Message set
-
- <code>{messaggio}</code>")
+        await message.edit(f" Message set <code>{messaggio}</code>")
     except:
         await message.edit("Wrong format, .setmex Messaggio")
 
