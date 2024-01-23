@@ -172,6 +172,7 @@ async def tempo(_, message):
             if secondi >= 300:
                 timespam = minuti
                 await message.edit(f"Time set on {timespam} minutes")
+                timespam = secondi
             else:
                 await message.edit("Min is 5 minutes")
         except ValueError:
@@ -202,9 +203,9 @@ async def spamavviato(_, message):
                 for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
                     try:
                         await ubot.send_message(gruppi, messaggio)
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(0.7)
                     except:
-                         await asyncio.sleep(0.5)
+                         await asyncio.sleep(0.7)
                 await asyncio.sleep(int(timespam))
         else:
             await message.edit("wrong format, .spam")
