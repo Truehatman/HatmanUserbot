@@ -143,14 +143,28 @@ async def groupadd(_, message):
 @ubot.on_message(filters.user("self") & filters.command("remgroup", "."))
 async def rimuovigruppo(_, message):
     try:
-        group_id = message.text.split(" ")[1]
+        input_value = message.text.split(" ")[1]
 
-        if group_id.startswith('@'):
+        if input_value.startswith('@'):
             # L'input è un username, otteniamo l'ID associato
-            chat = await ubot.get_chat(group_id)
-            group_id = chat.id
+            try:
+                chat = await ubot.get_chat(input_value)
+                group_id = chat.id
+            except pyrogram.errors.UsernameInvalid:
+                await message.edit("Invalid username.")
+                return
+        else:
+            # L'input è un ID diretto
+            group_id = input_value
 
-        group_info = await ubot.get_chat(int(group_id))
+        try:
+            group_info = await ubot.get_chat(int(group_id))
+        except pyrogram.errors.ChatAdminRequired:
+            await message.edit("Bot needs to be an admin to remove the group.")
+            return
+        except Exception as e:
+            await message.edit(f"Error in .remgroup: {str(e)}")
+            return
 
         if is_group_in_list(group_id):
             # Riesegui la query per ottenere il conteggio prima della rimozione
@@ -169,8 +183,6 @@ async def rimuovigruppo(_, message):
                 await message.edit(f"Failed to remove group {group_info.title} (ID: {group_info.id}) from the list.")
         else:
             await message.edit("Group not found in the list.")
-    except pyrogram.errors.exceptions.ChatAdminRequired:
-        await message.edit("Bot needs to be an admin to remove the group.")
     except Exception as e:
         print(e)
         await message.edit(f"Error in .remgroup: {str(e)}")
