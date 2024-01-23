@@ -145,42 +145,28 @@ async def rimuovigruppo(_, message):
     try:
         input_value = message.text.split(" ")[1]
 
-        if input_value.startswith('@'):
-            # L'input è un username, otteniamo l'ID associato
-            try:
-                chat = await ubot.get_chat(input_value)
-                group_id = chat.id
-            except pyrogram.errors.UsernameInvalid:
-                await message.edit("Invalid username.")
-                return
-        else:
-            # L'input è un ID diretto
-            group_id = input_value
-
         try:
-            group_info = await ubot.get_chat(int(group_id))
-        except pyrogram.errors.ChatAdminRequired:
-            await message.edit("Bot needs to be an admin to remove the group.")
-            return
-        except Exception as e:
-            await message.edit(f"Error in .remgroup: {str(e)}")
+            chat = await ubot.get_chat(input_value)
+            group_id = chat.id
+        except (pyrogram.errors.UsernameInvalid, pyrogram.errors.ChatAdminRequired, pyrogram.errors.ChatNotFound):
+            await message.edit("Invalid group identifier.")
             return
 
         if is_group_in_list(group_id):
             # Riesegui la query per ottenere il conteggio prima della rimozione
             count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
 
-            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_info.id])
+            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
             userbotspammer.commit()
 
             # Riesegui la query per ottenere il conteggio dopo la rimozione
             count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
 
             if count_before > count_after:
-                await message.edit(f"Group {group_info.title} (ID: {group_info.id}) removed from the list.")
+                await message.edit(f"Group {chat.title} (ID: {group_id}) removed from the list.")
                 print(f"Groups count before: {count_before}, after: {count_after}")
             else:
-                await message.edit(f"Failed to remove group {group_info.title} (ID: {group_info.id}) from the list.")
+                await message.edit(f"Failed to remove group {chat.title} (ID: {group_id}) from the list.")
         else:
             await message.edit("Group not found in the list.")
     except Exception as e:
