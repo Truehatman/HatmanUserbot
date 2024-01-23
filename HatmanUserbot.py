@@ -149,9 +149,12 @@ async def listagruppi(_, message):
         else:
             gruppimsg = ""
             for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
-                chat_info = await ubot.get_chat(gruppi)
-                chat_title = chat_info.title if chat_info.title else f"Group ID: {gruppi}"
-                gruppimsg += f"➥ {chat_title} | <code>{gruppi}</code>\n"
+                try:
+                    chat_info = await ubot.get_chat(gruppi)
+                    chat_title = chat_info.title if chat_info.title else f"Group ID: {gruppi}"
+                    gruppimsg += f"➥ {chat_title} | <code>{gruppi}</code>\n"
+                except pyrogram.errors.UsernameNotOccupied:
+                    gruppimsg += f"➥ Group ID: <code>{gruppi}</code>\n"
 
             await message.edit(f"<b>Group list:</b>\n{gruppimsg}")
     except Exception as e:
