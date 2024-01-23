@@ -104,42 +104,66 @@ async def groupadd(_, message):
     try:
         if message.chat.type == "group":
             group_id = message.chat.id
-            userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [group_id])
-            userbotspammer.commit()
-            try:
-                await ubot.join_chat(group_id)
-            except:
-                pass
-            await message.edit(f"Group {message.chat.title} added")
+            if not is_group_in_list(group_id):
+                userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [group_id])
+                userbotspammer.commit()
+                try:
+                    await ubot.join_chat(group_id)
+                except:
+                    pass
+
+                chat_info = await ubot.get_chat(group_id)
+                chat_username = chat_info.username if chat_info.username else f"ID: {group_id}"
+
+                await message.edit(f"Group @{chat_username} added")
+            else:
+                await message.edit("Group is already in the list.")
         elif message.text == ".addgroup":
             await message.edit("Please use .addgroup in a group chat to add it.")
         else:
             group_id = message.text.split(" ")[1]
-            userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [group_id])
-            userbotspammer.commit()
-            try:
-                await ubot.join_chat(group_id)
-            except:
-                pass
-            await message.edit(f"Group added!")
+            if not is_group_in_list(group_id):
+                userbotspammer.cursor().execute("INSERT INTO gruppi (chatid) VALUES (?)", [group_id])
+                userbotspammer.commit()
+                try:
+                    await ubot.join_chat(group_id)
+                except:
+                    pass
+
+                chat_info = await ubot.get_chat(group_id)
+                chat_username = chat_info.username if chat_info.username else f"ID: {group_id}"
+
+                await message.edit(f"Group @{chat_username} added!")
+            else:
+                await message.edit("Group is already in the list.")
     except Exception as e:
         print(e)
         await message.edit("Error in .addgroup!")
+
+# Rimuovi la funzione is_group_in_list se non la stai utilizzando altrove
 
 @ubot.on_message(filters.user("self") & filters.command("remgroup", "."))
 async def rimuovigruppo(_, message):
     try:
         count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
         if count == 0:
-            await message.edit(" There are no group")
+            await message.edit("There are no groups.")
         else:
-            group = await ubot.get_chat(message.text.split(" ")[1])
-            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group.id])
-            userbotspammer.commit()
-            await message.edit(f" Group {group.title} removed")
-    except:
-        group = await ubot.get_chat(message.text.split(" ")[1])
-        await message.edit(f" Error in .remgroup {group.title}")
+            group_id = message.text.split(" ")[1]
+            if is_group_in_list(group_id):
+                group = await ubot.get_chat(group_id)
+                userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group.id])
+                userbotspammer.commit()
+                await message.edit(f"Group {group.title} removed")
+            else:
+                await message.edit("Group not found in the list.")
+    except Exception as e:
+        print(e)
+        await message.edit("Error in .remgroup")
+
+def is_group_in_list(group_id):
+    result = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi WHERE chatid = ?", [group_id]).fetchone()[0]
+    return result > 0
 
 # Funzione per avviare la lista dei gruppi
 @ubot.on_message(filters.user("self") & filters.command("grouplist", "."))
