@@ -145,19 +145,21 @@ async def groupadd(_, message):
 @ubot.on_message(filters.user("self") & filters.command("remgroup", "."))
 async def rimuovigruppo(_, message):
     try:
-        count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-        if count == 0:
-            await message.edit("There are no groups.")
-        else:
-            group_id = message.text.split(" ")[1]
-            group_info = await ubot.get_chat(group_id)
+        count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
 
-            if is_group_in_list(group_id):
-                userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_info.id])
-                userbotspammer.commit()
-                await message.edit(f"Group {group_info.title} removed from the list.")
-            else:
-                await message.edit("Group not found in the list.")
+        group_id = message.text.split(" ")[1]
+        group_info = await ubot.get_chat(group_id)
+
+        if is_group_in_list(group_id):
+            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_info.id])
+            userbotspammer.commit()
+
+            count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
+            
+            await message.edit(f"Group {group_info.title} removed from the list.")
+            print(f"Groups count before: {count_before}, after: {count_after}")
+        else:
+            await message.edit("Group not found in the list.")
     except pyrogram.errors.exceptions.ChatAdminRequired:
         await message.edit("Bot needs to be an admin to remove the group.")
     except Exception as e:
