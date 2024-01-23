@@ -146,26 +146,32 @@ async def rimuovigruppo(_, message):
         input_value = message.text.split(" ")[1]
 
         try:
-            chat = await ubot.get_chat(input_value)
+            # Proviamo a ottenere il gruppo utilizzando l'ID diretto
+            chat = await ubot.get_chat(int(input_value))
             group_id = chat.id
-        except (pyrogram.errors.UsernameInvalid, pyrogram.errors.ChatAdminRequired, pyrogram.errors.ChatNotFound):
-            # L'input potrebbe essere un ID diretto
+        except ValueError:
             try:
-                group_id = int(input_value)
-            except ValueError:
+                # Se l'input non è un ID, prova a ottenere il gruppo utilizzando l'username
+                chat = await ubot.get_chat(input_value)
+                group_id = chat.id
+            except pyrogram.errors.UsernameInvalid:
                 await message.edit("Invalid group identifier.")
+                return
+            except pyrogram.errors.ChatAdminRequired:
+                await message.edit("Bot needs to be an admin to remove the group.")
+                return
+            except pyrogram.errors.ChatNotFound:
+                await message.edit("Group not found.")
                 return
 
         print(f"Attempting to remove group with ID: {group_id} from the list.")
 
         if is_group_in_list(group_id):
-            # Riesegui la query per ottenere il conteggio prima della rimozione
             count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
 
             userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
             userbotspammer.commit()
 
-            # Riesegui la query per ottenere il conteggio dopo la rimozione
             count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
 
             if count_before > count_after:
