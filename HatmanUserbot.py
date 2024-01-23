@@ -154,17 +154,30 @@ async def rimuovigruppo(_, message):
                 # Se l'input non è un ID, prova a ottenere il gruppo utilizzando l'username
                 chat = await ubot.get_chat(input_value)
                 group_id = chat.id
-            except pyrogram.errors.UsernameInvalid:
-                await message.edit("Invalid group identifier.")
-                return
-            except pyrogram.errors.ChatAdminRequired:
-                await message.edit("Bot needs to be an admin to remove the group.")
-                return
-            except pyrogram.errors.ChatNotFound:
-                await message.edit("Group not found.")
+            except Exception as e:
+                await message.edit(f"Error: {str(e)}")
                 return
 
         print(f"Attempting to remove group with ID: {group_id} from the list.")
+
+        if is_group_in_list(group_id):
+            count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
+
+            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
+            userbotspammer.commit()
+
+            count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
+
+            if count_before > count_after:
+                await message.edit(f"Group {chat.title} (ID: {group_id}) removed from the list.")
+                print(f"Groups count before: {count_before}, after: {count_after}")
+            else:
+                await message.edit(f"Failed to remove group {chat.title} (ID: {group_id}) from the list.")
+        else:
+            await message.edit(f"Group with ID {group_id} not found in the list.")
+    except Exception as e:
+        print(e)
+        await message.edit(f"Error in .remgroup: {str(e)}")
 
         if is_group_in_list(group_id):
             count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
