@@ -121,7 +121,7 @@ async def groupadd(_, message):
                 await ubot.join_chat(group_id)
             except:
                 pass
-            await message.edit(f"Group added!")
+            await message.edit(f"Group {message.chat.title} added!")
     except Exception as e:
         print(e)
         await message.edit("Error in .addgroup!")
