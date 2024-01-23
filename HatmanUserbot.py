@@ -144,6 +144,7 @@ async def rimuovigruppo(_, message):
 async def listagruppi(_, message):
     try:
         count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
+
         if count == 0:
             await message.edit("There are no groups!")
         else:
@@ -155,10 +156,14 @@ async def listagruppi(_, message):
                     gruppimsg += f"➥ {chat_title} | <code>{gruppi}</code>\n"
                 except pyrogram.errors.UsernameNotOccupied:
                     gruppimsg += f"➥ Group ID: <code>{gruppi}</code>\n"
-
+                except Exception as e:
+                    print(f"Error processing group {gruppi}: {e}")
+                    
+            print(f"Group list:\n{gruppimsg}")  # Aggiunta di una stampa per il debug
             await message.edit(f"<b>Group list:</b>\n{gruppimsg}")
+    
     except Exception as e:
-        print(e)
+        print(f"Error in .grouplist: {e}")
         await message.edit("Error in .grouplist!")
 
 @ubot.on_message(filters.user("self") & filters.command("time", "."))
