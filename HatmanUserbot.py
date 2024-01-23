@@ -142,17 +142,23 @@ async def rimuovigruppo(_, message):
 
 @ubot.on_message(filters.user("self") & filters.command("grouplist", "."))
 async def listagruppi(_, message):
-    count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-    if count == 0:
-        await message.edit("There are no groups!")
-    else:
-        gruppimsg = ""
-        for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
-            gruppimsg += f"➜ {(await ubot.get_chat(gruppi)).title} | <code>{(await ubot.get_chat(gruppi)).id}</code>\n"
-        await message.edit(f"<b>Group list:</b>\n{gruppimsg}")
+    try:
+        count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
+        if count == 0:
+            await message.edit("There are no groups!")
+        else:
+            gruppimsg = ""
+            for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
+                try:
+                    chat_info = await ubot.get_chat(gruppi)
+                    gruppimsg += f"➥ {chat_info.title} | <code>{chat_info.id}</code>\n"
+                except pyrogram.errors.UsernameNotOccupied:
+                    gruppimsg += f"➥ Group ID: <code>{gruppi}</code>\n"
 
-timespam = None
-messaggio = ""
+            await message.edit(f"<b>Group list:</b>\n{gruppimsg}")
+    except Exception as e:
+        print(e)
+        await message.edit("Error in .grouplist!")
 
 @ubot.on_message(filters.user("self") & filters.command("time", "."))
 async def tempo(_, message):
