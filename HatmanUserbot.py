@@ -244,7 +244,7 @@ async def percentage_command(client, message):
         # Gestisce il caso in cui la conversione o l'accesso ai valori fallisce
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
-@ubot.on_message(filters.user("self") & filters.command("setlink", "."))
+@ubot.on_message(filters.user("self") & filters.command("setcmd", "."))
 async def set_generic_link(client, message):
     try:
         command_parts = message.text.split(' ', 2)
