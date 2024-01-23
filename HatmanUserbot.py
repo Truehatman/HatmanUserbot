@@ -1,4 +1,5 @@
 #HatmanUserbot
+import pyrogram
 from sched import scheduler
 from pyrogram import Client, filters, idle
 from pyrogram.raw.functions.messages import StartBot, DeleteHistory, InstallStickerSet
