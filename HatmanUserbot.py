@@ -150,16 +150,19 @@ async def rimuovigruppo(_, message):
             await message.edit("There are no groups.")
         else:
             group_id = message.text.split(" ")[1]
+            group_info = await ubot.get_chat(group_id)
+
             if is_group_in_list(group_id):
-                group = await ubot.get_chat(group_id)
-                userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group.id])
+                userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_info.id])
                 userbotspammer.commit()
-                await message.edit(f"Group {group.title} removed")
+                await message.edit(f"Group {group_info.title} removed from the list.")
             else:
                 await message.edit("Group not found in the list.")
+    except pyrogram.errors.exceptions.ChatAdminRequired:
+        await message.edit("Bot needs to be an admin to remove the group.")
     except Exception as e:
         print(e)
-        await message.edit("Error in .remgroup")
+        await message.edit(f"Error in .remgroup: {str(e)}")
 
 def is_group_in_list(group_id):
     result = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi WHERE chatid = ?", [group_id]).fetchone()[0]
