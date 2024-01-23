@@ -140,13 +140,17 @@ async def groupadd(_, message):
         print(e)
         await message.edit("Error in .addgroup!")
 
-# Rimuovi la funzione is_group_in_list se non la stai utilizzando altrove
-
 @ubot.on_message(filters.user("self") & filters.command("remgroup", "."))
 async def rimuovigruppo(_, message):
     try:
         group_id = message.text.split(" ")[1]
-        group_info = await ubot.get_chat(group_id)
+
+        if group_id.startswith('@'):
+            # L'input è un username, otteniamo l'ID associato
+            chat = await ubot.get_chat(group_id)
+            group_id = chat.id
+
+        group_info = await ubot.get_chat(int(group_id))
 
         if is_group_in_list(group_id):
             # Riesegui la query per ottenere il conteggio prima della rimozione
