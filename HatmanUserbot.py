@@ -168,6 +168,19 @@ async def listagruppi(_, message):
         print(f"Error in .grouplist: {e}")
         await message.edit("Error in .grouplist!")
 
+# Funzione per il reset della lista dei gruppi
+@ubot.on_message(filters.user("self") & filters.command("resetgrouplist", "."))
+async def reset_grouplist(_, message):
+    try:
+        # Elimina tutti i dati dalla tabella 'gruppi'
+        userbotspammer.cursor().execute("DELETE FROM gruppi")
+        userbotspammer.commit()
+
+        await message.edit("Group list reset successfully!")
+    except Exception as e:
+        print(f"Error in .resetgrouplist: {e}")
+        await message.edit("Error resetting group list!")
+
 @ubot.on_message(filters.user("self") & filters.command("time", "."))
 async def tempo(_, message):
     global timespam
