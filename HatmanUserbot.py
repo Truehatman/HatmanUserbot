@@ -154,8 +154,9 @@ async def rimuovigruppo(_, message):
             userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_info.id])
             userbotspammer.commit()
 
+            # Riesegui la query per ottenere il conteggio dopo la rimozione
             count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-            
+
             await message.edit(f"Group {group_info.title} removed from the list.")
             print(f"Groups count before: {count_before}, after: {count_after}")
         else:
