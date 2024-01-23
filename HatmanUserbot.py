@@ -149,8 +149,14 @@ async def rimuovigruppo(_, message):
             chat = await ubot.get_chat(input_value)
             group_id = chat.id
         except (pyrogram.errors.UsernameInvalid, pyrogram.errors.ChatAdminRequired, pyrogram.errors.ChatNotFound):
-            await message.edit("Invalid group identifier.")
-            return
+            # L'input potrebbe essere un ID diretto
+            try:
+                group_id = int(input_value)
+            except ValueError:
+                await message.edit("Invalid group identifier.")
+                return
+
+        print(f"Attempting to remove group with ID: {group_id} from the list.")
 
         if is_group_in_list(group_id):
             # Riesegui la query per ottenere il conteggio prima della rimozione
@@ -168,7 +174,7 @@ async def rimuovigruppo(_, message):
             else:
                 await message.edit(f"Failed to remove group {chat.title} (ID: {group_id}) from the list.")
         else:
-            await message.edit("Group not found in the list.")
+            await message.edit(f"Group with ID {group_id} not found in the list.")
     except Exception as e:
         print(e)
         await message.edit(f"Error in .remgroup: {str(e)}")
