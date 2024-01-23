@@ -140,6 +140,7 @@ async def rimuovigruppo(_, message):
         group = await ubot.get_chat(message.text.split(" ")[1])
         await message.edit(f" Error in .remgroup {group.title}")
 
+# Funzione per avviare la lista dei gruppi
 @ubot.on_message(filters.user("self") & filters.command("grouplist", "."))
 async def listagruppi(_, message):
     try:
