@@ -50,16 +50,9 @@ ignore = []
 try:
     userbotspammer = sqlite3.connect("userbot.db")
     userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS gruppi (chatid INT)")
-    userbotspammer.cursor().execute(
-        "CREATE TABLE IF NOT EXISTS paypal_links (id INTEGER PRIMARY KEY, link TEXT)")
-    userbotspammer.cursor().execute(
-        "CREATE TABLE IF NOT EXISTS litecoin_links (id INTEGER PRIMARY KEY, link TEXT)")
-    userbotspammer.cursor().execute(
-        "CREATE TABLE IF NOT EXISTS bitcoin_links (id INTEGER PRIMARY KEY, link TEXT)")
-    userbotspammer.cursor().execute(
-        "CREATE TABLE IF NOT EXISTS ethereum_links (id INTEGER PRIMARY KEY, link TEXT)")
-    userbotspammer.cursor().execute(
-        "CREATE TABLE IF NOT EXISTS revolut_links (id INTEGER PRIMARY KEY, link TEXT)")
+    userbotspammer.cursor().execute("CREATE TABLE IF NOT EXISTS muted_users (user_id INT)")
+except Exception as e:
+    print(f"Error connecting to the database: {e}")
 except:
     pass
 
@@ -382,16 +375,16 @@ async def unblock_user(client, message):
         print(f"Error while unblocking user: {e}")
         await message.edit_text("Error while unblocking user.")
 
-# Comando per disattivare le notifiche per un utente in risposta
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(client, message):
     try:
         # Estrai l'ID dell'utente a cui si sta rispondendo
         user_id = message.reply_to_message.from_user.id
 
-        # Aggiungi l'utente al dizionario dei muteati
-        muted_users[user_id] = True
-        
+        # Aggiungi l'utente al database dei muteati
+        userbotspammer.cursor().execute("INSERT INTO muted_users (user_id) VALUES (?)", [user_id])
+        userbotspammer.commit()
+
         await message.edit_text("User muted successfully.")
     except Exception as e:
         print(f"Error while muting user: {e}")
@@ -403,8 +396,9 @@ async def unmute_user(client, message):
         # Estrai l'ID dell'utente a cui si sta rispondendo
         user_id = message.reply_to_message.from_user.id
 
-        # Rimuovi l'utente dal dizionario dei muteati
-        muted_users.pop(user_id, None)
+        # Rimuovi l'utente dal database dei muteati
+        userbotspammer.cursor().execute("DELETE FROM muted_users WHERE user_id=?", [user_id])
+        userbotspammer.commit()
 
         await message.edit_text("User unmuted successfully.")
     except Exception as e:
@@ -415,12 +409,17 @@ async def unmute_user(client, message):
 @ubot.on_message(filters.text)
 async def delete_muted_messages(client, message):
     try:
-        # Verifica se l'utente ÃÂ¨ muteato e se il mittente ÃÂ¨ valido
-        if message.from_user and message.from_user.id in muted_users:
+        # Verifica se l'utente è muteato e se il mittente è valido
+        if message.from_user and is_user_muted(message.from_user.id):
             # Elimina il messaggio
             await message.delete()
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
+
+# Funzione per verificare se un utente è muteato
+def is_user_muted(user_id):
+    result = userbotspammer.cursor().execute("SELECT COUNT(user_id) FROM muted_users WHERE user_id = ?", [user_id]).fetchone()[0]
+    return result > 0
 
 idle()
 
