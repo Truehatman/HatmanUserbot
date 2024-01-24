@@ -386,7 +386,7 @@ async def delete_muted_messages(client, message):
             await message.delete()
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
-      return False
+    return False
 
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(_, message):
