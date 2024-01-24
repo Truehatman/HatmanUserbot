@@ -321,44 +321,43 @@ async def percentage_command(client, message):
         # Gestisce il caso in cui la conversione o l'accesso ai valori fallisce
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
-# Handler per impostare un comando
-@ubot.on_message(filters.user("self") & filters.command("setcmd", prefixes="."))
+# Handler per impostare un comando@ubot.on_message(filters.user("self") & filters.command("setcmd", prefixes="."))
 async def set_generic_link(client, message):
     try:
         command_parts = message.text.split(' ', 2)
-        table_name = command_parts[1]
-        link_value = command_parts[2]
+        command_name = command_parts[1]
+        command_text = command_parts[2]
 
-        await save_link(link_value, table_name, userbotspammer)
+        await save_link(command_text, command_name, userbotspammer)
 
-        await message.edit_text(f"Command for {table_name} set successfully.")
+        await message.edit_text(f"Command '{command_name}' set successfully.")
     except (IndexError, ValueError):
-        await message.edit_text("Right command: .setcmd [table_name] [link_value]")
+        await message.edit_text("Right command: .setcmd [command_name] [command_text]")
 
 @ubot.on_message(filters.user("self") & filters.command("delcmd", prefixes="."))
 async def delete_generic_link(client, message):
     try:
-        command_parts = message.text.split(' ', 2)
-        table_name = command_parts[1]
+        command_parts = message.text.split(' ', 1)
+        command_name = command_parts[1]
 
-        await delete_link(table_name, userbotspammer)
+        await delete_link(command_name, userbotspammer)
 
-        await message.edit_text(f"Command for {table_name} deleted successfully.")
+        await message.edit_text(f"Command '{command_name}' deleted successfully.")
     except (IndexError, ValueError):
-        await message.edit_text("Right command: .delcmd [table_name]")
+        await message.edit_text("Right command: .delcmd [command_name]")
 
 @ubot.on_message(filters.regex(r'^\.[a-zA-Z0-9_]+$'))
 async def direct_link_command(client, message):
     try:
-        table_name = message.command[0]
+        command_name = message.command[0]
 
-        link_value = await load_link(table_name, userbotspammer)
+        link_value = await load_link(command_name, userbotspammer)
         if link_value:
             await message.edit_text(f"{link_value}")
         else:
-            await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
+            await message.edit_text(f"No command set for '{command_name}'. Use .setcmd to set a command.")
     except (IndexError, ValueError):
-        await message.edit_text("Right command format: .[table_name]")
+        await message.edit_text("Right command format: .[command_name]")
 
 @ubot.on_message(filters.user("self") & filters.command("block", "."))
 async def block_user(client, message):
