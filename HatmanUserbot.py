@@ -1,4 +1,4 @@
-#HatmanUserbot
+##HatmanUserbot
 import pyrogram
 from sched import scheduler
 from pyrogram import Client, filters, idle
@@ -310,7 +310,7 @@ async def percentage_command(client, message):
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
 @ubot.on_message(filters.user("self") & filters.command("setcmd", "."))
-async def set_generic_link(_, message):
+async def set_generic_link(client, message):
     try:
         command_parts = message.text.split(' ', 2)
         table_name = command_parts[1]
@@ -322,26 +322,16 @@ async def set_generic_link(_, message):
     except (IndexError, ValueError):
         await message.edit_text("Right command: .setcmd [table_name] [link_value]")
 
-# Funzione per verificare se un comando è definito internamente
-def is_command_defined(command_name):
-    # Aggiungi qui la logica per verificare se il comando è definito nello script
-    defined_commands = ["mute", "unmute", "altro_comando"]
-    return command_name in defined_commands
-
 @ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
-async def direct_link_command(_, message):
+async def direct_link_command(client, message):
     try:
         table_name = message.text[1:]
 
-        # Check if the command exists in the script
-        if is_command_defined(table_name):
-            await message.edit_text(f"{table_name} command is defined internally.")
+        link_value = await load_link(table_name, userbotspammer)
+        if link_value:
+            await message.edit_text(f"{link_value}")
         else:
-            link_value = await load_link(table_name, userbotspammer)
-            if link_value:
-                await message.edit_text(f"{link_value}")
-            else:
-                await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
+            await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
     except (IndexError, ValueError):
         await message.edit_text(f"Right command format: .{table_name}")
 
@@ -414,7 +404,4 @@ async def unmute_user(_, message):
     except Exception as e:
         print(f"Error while unmuting user: {e}")
         await message.edit_text("Error while unmuting user.")
-
-idle()
-
 
