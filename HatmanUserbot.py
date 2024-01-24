@@ -92,6 +92,11 @@ async def load_link(table_name, connection):
         print(f"Errore durante il recupero del link: {e}")
         return None
 
+async def delete_link(table_name, userbotspammer):
+    # Implementa la logica per eliminare il comando dal tuo database
+    commands_database = userbotspammer.get_commands_database()
+    if table_name in commands_database:
+        del commands_database[table_name]
 
 spamcheck = False
 
@@ -376,7 +381,19 @@ async def direct_link_command(client, message):
             await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
     except (IndexError, ValueError):
         await message.edit_text(f"Right command format: .{table_name}")
-       
+
+@ubot.on_message(filters.user("self") & filters.command("delcmd", "."))
+async def delete_generic_link(client, message):
+    try:
+        command_parts = message.text.split(' ', 2)
+        table_name = command_parts[1]
+
+        await delete_link(table_name, userbotspammer)
+
+        await message.edit_text(f"Command for {table_name} deleted successfully.")
+    except (IndexError, ValueError):
+        await message.edit_text("Right command: .delcmd [table_name]")
+
 @ubot.on_message(filters.user("self") & filters.command("block", "."))
 async def block_user(client, message):
     try:
