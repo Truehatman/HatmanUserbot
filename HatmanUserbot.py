@@ -389,26 +389,6 @@ async def delete_muted_messages(client, message):
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
 
-
-@ubot.on_message(filters.command("update", "."))
-async def update_code(_, message):
-    try:
-        github_token = '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'
-        repo_url = "https://github.com/hatmanexchange/HatmanUserbot.git"
-
-        os.environ['GITHUB_TOKEN'] = github_token
-
-        subprocess.run(["git", "pull", repo_url])
-
-        del os.environ['GITHUB_TOKEN']
-
-        await message.edit("Code updated successfully. Restarting the bot...")
-        # Aggiungi qui il codice per il riavvio del bot, se necessario
-
-    except subprocess.CalledProcessError as e:
-        print(e)
-        await message.edit(f"Error updating the code: {str(e)}")
-
 @ubot.on_message(filters.command("setcmd", prefixes="."))
 async def set_generic_link(client, message):
     try:
