@@ -21,6 +21,7 @@ import asyncio
 import datetime
 from multiprocessing import get_context
 import os
+import subprocess
 import traceback
 import requests
 import validators
@@ -98,7 +99,6 @@ spamcheck = False
 muted_users = {}
 scheduled_tasks = {}
 
-GITHUB_TOKEN = "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"
 
 @ubot.on_message(filters.user("self") & filters.command("addgroup", prefixes="."))
 async def groupadd(_, message):
@@ -142,47 +142,47 @@ async def groupadd(_, message):
         await message.edit("Error in .addgroup!")
 
 @ubot.on_message(filters.user("self") & filters.command("remgroup", prefixes="."))
-async def rimuovigruppo(_, message):
+async def remove_group(_, message):
     try:
-        # Controlla se il messaggio ha un argomento
+        # Check if the message has an argument
         if len(message.command) > 1:
-            input_value = message.command[1]  # Usa il secondo elemento della lista command
+            input_value = message.command[1]  # Use the second element of the command list
         else:
-            await message.edit("Devi specificare il nome o l'ID del gruppo da rimuovere.")
+            await message.edit("You must specify the name or ID of the group to remove.")
             return
 
         try:
-            # Prova a ottenere il gruppo utilizzando l'username o l'ID
+            # Try to get the group using the username or ID
             chat_info = await ubot.get_chat(input_value)
             group_id = chat_info.id
         except Exception as e:
-            await message.edit(f"Errore: {str(e)}")
+            await message.edit(f"Error: {str(e)}")
             return
 
-        print(f"Sto tentando di rimuovere il gruppo con ID: {group_id} dalla lista.")
+        print(f"Attempting to remove group with ID: {group_id} from the list.")
 
-        # Verifica se il gruppo è presente nella lista prima della rimozione
+        # Check if the group is in the list before removal
         if is_group_in_list(group_id):
             try:
-                # Elimina tutto ciò che è inerente al gruppo dal database
+                # Remove everything related to the group from the 'gruppi' table in the database
                 userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
                 userbotspammer.commit()
-                await message.edit(f"Gruppo con ID {group_id} rimosso dalla lista.")
+                await message.edit(f"Group with ID {group_id} removed from the list.")
             except Exception as remove_exception:
-                print(f"Errore nel rimuovere il gruppo (ID: {group_id}) dalla lista: {str(remove_exception)}")
-                await message.edit(f"Errore nel rimuovere il gruppo dalla lista.")
+                print(f"Error removing the group (ID: {group_id}) from the list: {str(remove_exception)}")
+                await message.edit(f"Error removing the group from the list.")
         else:
-            await message.edit(f"Gruppo con ID {group_id} non trovato nella lista.")
+            await message.edit(f"Group with ID {group_id} not found in the list.")
     except Exception as e:
         print(e)
-        await message.edit(f"Errore in .remgroup: {str(e)}")
+        await message.edit(f"Error in .remgroup: {str(e)}")
 
 def is_group_in_list(group_id):
     try:
         result = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi WHERE chatid = ?", [group_id]).fetchone()[0]
         return result > 0
     except Exception as e:
-        print(f"Errore in is_group_in_list: {str(e)}")
+        print(f"Error in is_group_in_list: {str(e)}")
         return False
 
 # Funzione per avviare la lista dei gruppi
@@ -410,23 +410,30 @@ async def delete_muted_messages(client, message):
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
 
-@ubot.on_message(filters.user("self") & filters.command("update", "."))
+
+@ubot.on_message(filters.user("your_user_id") & filters.command("update", "."))
 async def update_code(_, message):
     try:
-        # Aggiorna il codice dalla repository su GitHub utilizzando il token di accesso personale
-        subprocess.run(["git", "pull"], env={"GH_TOKEN": GITHUB_TOKEN})
+        # Sostituisci 'YOUR_GITHUB_TOKEN' con il tuo token personale di GitHub
+        github_token = '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'
+        repo_url = "https://github.com/hatmanexchange/HatmanUserbot.git"
 
-        # Riavvia il bot per applicare gli aggiornamenti
-        await message.edit("Aggiornamento completato. Riavvio il bot.")
-        await asyncio.sleep(1)
+        # Setta la variabile d'ambiente per utilizzare il token durante l'operazione di pull
+        os.environ['GITHUB_TOKEN'] = github_token
 
-        # Opzionale: inserisci qui qualsiasi altro codice di inizializzazione necessario prima del riavvio
-        # ...
+        # Scarica il codice più recente
+        subprocess.run(["git", "pull", repo_url])
 
-        # Riavvia il bot
-        os.execl(sys.executable, sys.executable, *sys.argv)
+        # Rimuovi la variabile d'ambiente dopo l'operazione di pull
+        del os.environ['GITHUB_TOKEN']
+
+        # Riavvia il bot o esegui altre operazioni necessarie
+        await message.edit("Code updated successfully. Restarting the bot...")
+        # Puoi aggiungere qui il codice per il riavvio del bot, se necessario
+
     except Exception as e:
-        await message.edit(f"Errore durante l'aggiornamento: {str(e)}")
+        print(e)
+        await message.edit(f"Error updating the code: {str(e)}")
 
 idle()
 
