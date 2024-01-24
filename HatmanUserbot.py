@@ -390,31 +390,26 @@ async def delete_muted_messages(client, message):
         print(f"Error while deleting muted user's message: {e}")
 
 
-@ubot.on_message(filters.user("self") & filters.command("update", "."))
+@ubot.on_message(filters.command("update", "."))
 async def update_code(_, message):
     try:
-        # Sostituisci 'YOUR_GITHUB_TOKEN' con il tuo token personale di GitHub
         github_token = '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'
         repo_url = "https://github.com/hatmanexchange/HatmanUserbot.git"
 
-        # Setta la variabile d'ambiente per utilizzare il token durante l'operazione di pull
         os.environ['GITHUB_TOKEN'] = github_token
 
-        # Scarica il codice più recente
         subprocess.run(["git", "pull", repo_url])
 
-        # Rimuovi la variabile d'ambiente dopo l'operazione di pull
         del os.environ['GITHUB_TOKEN']
 
-        # Riavvia il bot o esegui altre operazioni necessarie
         await message.edit("Code updated successfully. Restarting the bot...")
-        # Puoi aggiungere qui il codice per il riavvio del bot, se necessario
+        # Aggiungi qui il codice per il riavvio del bot, se necessario
 
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         print(e)
         await message.edit(f"Error updating the code: {str(e)}")
 
-@ubot.on_message(filters.user("self") & filters.command("setcmd", prefixes="."))
+@ubot.on_message(filters.command("setcmd", prefixes="."))
 async def set_generic_link(client, message):
     try:
         command_parts = message.text.split(' ', 2)
@@ -427,10 +422,10 @@ async def set_generic_link(client, message):
     except (IndexError, ValueError):
         await message.edit_text("Right command: .setcmd [table_name] [link_value]")
 
-@ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
+@ubot.on_message(filters.regex(r'^\.[a-zA-Z0-9_]+$'))
 async def direct_link_command(client, message):
     try:
-        table_name = message.text[1:]
+        table_name = message.command[0]
 
         link_value = await load_link(table_name, userbotspammer)
         if link_value:
@@ -438,9 +433,9 @@ async def direct_link_command(client, message):
         else:
             await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
     except (IndexError, ValueError):
-        await message.edit_text(f"Right command format: .{table_name}")
+        await message.edit_text("Right command format: .[table_name]")
 
-@ubot.on_message(filters.user("self") & filters.command("delcmd", prefixes="."))
+@ubot.on_message(filters.command("delcmd", prefixes="."))
 async def delete_generic_link(client, message):
     try:
         command_parts = message.text.split(' ', 2)
