@@ -363,6 +363,14 @@ async def mute_user(_, message):
         print(f"Error while muting user: {e}")
         await message.edit_text("Error while muting user.")
 
+@ubot.on_message(filters.user(bot.me) & ~filters.private)
+async def delete_messages(_, message):
+    try:
+        if is_user_muted(message.from_user.id):
+            await message.delete()
+    except Exception as e:
+        print(f"Error while deleting message: {e}")
+
 @ubot.on_message(filters.command("unmute", ".") & filters.reply)
 async def unmute_user(_, message):
     try:
