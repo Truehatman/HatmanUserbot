@@ -337,6 +337,17 @@ async def unblock_user(client, message):
         print(f"Error while unblocking user: {e}")
         await message.edit_text("Error while unblocking user.")
 
+def is_user_muted(user_id):
+    try:
+        cursor = userbotspammer.cursor()
+        cursor.execute("SELECT * FROM muted_users WHERE user_id = ?", [user_id])
+        result = cursor.fetchone()
+
+        return result is not None  # Restituisce True se l'utente è già mutato, altrimenti False
+    except Exception as e:
+        print(f"Error checking if user is muted: {e}")
+        return False
+
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(_, message):
     try:
