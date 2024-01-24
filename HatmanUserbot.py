@@ -389,18 +389,46 @@ async def delete_muted_messages(client, message):
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
 
+# Handler per impostare un comando
 @ubot.on_message(filters.command("setcmd", prefixes="."))
 async def set_generic_link(client, message):
     try:
         command_parts = message.text.split(' ', 2)
-        table_name = command_parts[1]
-        link_value = command_parts[2]
+        print(f"Command parts for setcmd: {command_parts}")
 
-        await save_link(link_value, table_name, userbotspammer)
+        if len(command_parts) == 3:
+            table_name = command_parts[1]
+            link_value = command_parts[2]
 
-        await message.edit_text(f"Command for {table_name} set successfully.")
-    except (IndexError, ValueError):
-        await message.edit_text("Right command: .setcmd [table_name] [link_value]")
+            await save_link(link_value, table_name, userbotspammer)
+
+            await message.edit_text(f"Command for {table_name} set successfully.")
+        else:
+            await message.edit_text("Right command format: .setcmd [table_name] [link_value]")
+
+    except Exception as e:
+        print(f"Error in set_generic_link: {str(e)}")
+        await message.edit_text(f"Error setting command: {str(e)}")
+
+# Handler per eliminare un comando
+@ubot.on_message(filters.command("delcmd", prefixes="."))
+async def delete_generic_link(client, message):
+    try:
+        command_parts = message.text.split(' ', 2)
+        print(f"Command parts for delcmd: {command_parts}")
+
+        if len(command_parts) == 2:
+            table_name = command_parts[1]
+
+            await delete_link(table_name, userbotspammer)
+
+            await message.edit_text(f"Command for {table_name} deleted successfully.")
+        else:
+            await message.edit_text("Right command: .delcmd [table_name]")
+
+    except Exception as e:
+        print(f"Error in delete_generic_link: {str(e)}")
+        await message.edit_text(f"Error deleting command: {str(e)}")
 
 @ubot.on_message(filters.regex(r'^\.[a-zA-Z0-9_]+$'))
 async def direct_link_command(client, message):
@@ -414,18 +442,6 @@ async def direct_link_command(client, message):
             await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
     except (IndexError, ValueError):
         await message.edit_text("Right command format: .[table_name]")
-
-@ubot.on_message(filters.command("delcmd", prefixes="."))
-async def delete_generic_link(client, message):
-    try:
-        command_parts = message.text.split(' ', 2)
-        table_name = command_parts[1]
-
-        await delete_link(table_name, userbotspammer)
-
-        await message.edit_text(f"Command for {table_name} deleted successfully.")
-    except (IndexError, ValueError):
-        await message.edit_text("Right command: .delcmd [table_name]")
 
 idle()
 
