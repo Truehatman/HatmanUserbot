@@ -92,11 +92,14 @@ async def load_link(table_name, connection):
         print(f"Errore durante il recupero del link: {e}")
         return None
 
-async def delete_link(table_name, userbotspammer):
-    # Implementa la logica per eliminare il comando dal tuo database
-    commands_database = userbotspammer.get_commands_database()
-    if table_name in commands_database:
-        del commands_database[table_name]
+async def delete_link(table_name, connection):
+    try:
+        await create_table_if_not_exists(table_name, connection)
+        cursor = connection.cursor()
+        cursor.execute(f"DELETE FROM {table_name}")
+        connection.commit()
+    except Exception as e:
+        print(f"Errore durante l'eliminazione del link: {e}")
 
 spamcheck = False
 
