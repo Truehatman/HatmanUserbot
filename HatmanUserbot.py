@@ -454,6 +454,6 @@ async def delete_muted_messages(client, message):
             # Elimina il messaggio
             await message.delete()
     except Exception as e:
-        print(f"Error while deleting muted user's message: {e}"
+        print(f"Error while deleting muted user's message: {e}")
 
 idle()
