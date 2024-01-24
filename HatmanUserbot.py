@@ -146,7 +146,7 @@ async def rimuovigruppo(_, message):
     try:
         # Controlla se il messaggio ha un argomento
         if len(message.command) > 1:
-            input_value = message.command[1] # Usa il secondo elemento della lista command
+            input_value = message.command[1]  # Usa il secondo elemento della lista command
         else:
             await message.edit("Devi specificare il nome o l'ID del gruppo da rimuovere.")
             return
@@ -167,16 +167,22 @@ async def rimuovigruppo(_, message):
                 # Elimina tutto ciò che è inerente al gruppo dal database
                 userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
                 userbotspammer.commit()
+                await message.edit(f"Gruppo con ID {group_id} rimosso dalla lista.")
             except Exception as remove_exception:
                 print(f"Errore nel rimuovere il gruppo (ID: {group_id}) dalla lista: {str(remove_exception)}")
-                await message.edit(f"Errore nel rimuovere")
+                await message.edit(f"Errore nel rimuovere il gruppo dalla lista.")
+        else:
+            await message.edit(f"Gruppo con ID {group_id} non trovato nella lista.")
+    except Exception as e:
+        print(e)
+        await message.edit(f"Errore in .remgroup: {str(e)}")
 
 def is_group_in_list(group_id):
     try:
         result = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi WHERE chatid = ?", [group_id]).fetchone()[0]
         return result > 0
     except Exception as e:
-        print(f"Error in is_group_in_list: {str(e)}")
+        print(f"Errore in is_group_in_list: {str(e)}")
         return False
 
 # Funzione per avviare la lista dei gruppi
