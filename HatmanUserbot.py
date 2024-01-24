@@ -377,16 +377,6 @@ def is_user_muted(user_id):
         print(f"Error checking if user is muted: {e}")
         return False
 
-@ubot.on_message(filters.text)
-async def delete_muted_messages(client, message):
-    try:
-        # Verifica se l'utente è muteato e se il mittente è valido
-        if message.from_user and is_user_muted(message.from_user.id):
-            # Elimina il messaggio
-            await message.delete()
-    except Exception as e:
-        print(f"Error while deleting muted user's message: {e}")
-    return False
 
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(_, message):
@@ -455,5 +445,15 @@ async def delete_generic_link(client, message):
         await message.edit_text(f"Command for {table_name} deleted successfully.")
     except (IndexError, ValueError):
         await message.edit_text("Right command: .delcmd [table_name]")
+
+@ubot.on_message(filters.text)
+async def delete_muted_messages(client, message):
+    try:
+        # Verifica se l'utente è muteato e se il mittente è valido
+        if message.from_user and is_user_muted(message.from_user.id):
+            # Elimina il messaggio
+            await message.delete()
+    except Exception as e:
+        print(f"Error while deleting muted user's message: {e}"
 
 idle()
