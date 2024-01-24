@@ -101,15 +101,20 @@ scheduled_tasks = {}
 
 
 import subprocess
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+username = config['GitHub']['hatmanexchange']
+password = config['GitHub']['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']
+repository_url = config['GitHub']['https://github.com/hatmanexchange/HatmanUserbot']
+branch_name = config['GitHub']['main']
 
 @ubot.on_message(filters.user("self") & filters.command("update", "."))
 async def update_bot_command(_, message):
     try:
         await message.edit_text("Updating...")
-
-        # Sostituisci i seguenti valori con le informazioni della tua repository privata
-        repository_url = "https://hatmanexchange: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@github.com/hatmanexchange/HatmanUserbot"
-        branch_name = "main"
 
         # Esegui il comando di aggiornamento con l'autenticazione tramite subprocess
         update_command = f"git pull {repository_url} {branch_name}"
