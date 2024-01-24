@@ -181,63 +181,6 @@ async def group_remove(_, message):
         print(e)
         await message.edit("Error in .remgroup!")
 
-        if is_group_in_list(group_id):
-            count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-
-            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
-            userbotspammer.commit()
-
-            count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-
-            if count_before > count_after:
-                await message.edit(f"Group (ID: {group_id}) removed from the list.")
-                print(f"Groups count before: {count_before}, after: {count_after}")
-            else:
-                await message.edit(f"Failed to remove group (ID: {group_id}) from the list.")
-        else:
-            await message.edit(f"Group with ID {group_id} not found in the list.")
-    except Exception as e:
-        print(e)
-        await message.edit(f"Error in .remgroup: {str(e)}")
-
-        if is_group_in_list(group_id):
-            count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-
-            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
-            userbotspammer.commit()
-
-            count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-
-            if count_before > count_after:
-                await message.edit(f"Group {chat.title} (ID: {group_id}) removed from the list.")
-                print(f"Groups count before: {count_before}, after: {count_after}")
-            else:
-                await message.edit(f"Failed to remove group {chat.title} (ID: {group_id}) from the list.")
-        else:
-            await message.edit(f"Group with ID {group_id} not found in the list.")
-    except Exception as e:
-        print(e)
-        await message.edit(f"Error in .remgroup: {str(e)}")
-
-        if is_group_in_list(group_id):
-            count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-
-            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
-            userbotspammer.commit()
-
-            count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
-
-            if count_before > count_after:
-                await message.edit(f"Group {chat.title} (ID: {group_id}) removed from the list.")
-                print(f"Groups count before: {count_before}, after: {count_after}")
-            else:
-                await message.edit(f"Failed to remove group {chat.title} (ID: {group_id}) from the list.")
-        else:
-            await message.edit(f"Group with ID {group_id} not found in the list.")
-    except Exception as e:
-        print(e)
-        await message.edit(f"Error in .remgroup: {str(e)}")
-
 def is_group_in_list(group_id):
     result = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi WHERE chatid = ?", [group_id]).fetchone()[0]
     return result > 0
