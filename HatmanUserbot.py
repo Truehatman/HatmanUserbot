@@ -149,23 +149,37 @@ async def groupadd(_, message):
         await message.edit("Error in .addgroup!")
 
 @ubot.on_message(filters.user("self") & filters.command("remgroup", "."))
-async def rimuovigruppo(_, message):
+async def group_remove(_, message):
     try:
-        input_value = message.text.split(" ")[1]
+        if message.chat.type == "group":
+            group_id = message.chat.id
+            if is_group_in_list(group_id):
+                userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid=?", [group_id])
+                userbotspammer.commit()
 
-        try:
-            # Proviamo a ottenere il gruppo utilizzando l'ID diretto
-            group_id = int(input_value)
-        except ValueError:
-            try:
-                # Se l'input non è un ID, prova a ottenere il gruppo utilizzando l'username
-                chat = await ubot.get_chat(input_value)
-                group_id = chat.id
-            except Exception as e:
-                await message.edit(f"Error: {str(e)}")
-                return
+                chat_info = await ubot.get_chat(group_id)
+                chat_username = chat_info.username if chat_info.username else f"ID: {group_id}"
 
-        print(f"Attempting to remove group with ID: {group_id} from the list.")
+                await message.edit(f"Group @{chat_username} removed")
+            else:
+                await message.edit("Group is not in the list.")
+        elif message.text == ".remgroup":
+            await message.edit("Please use .remgroup in a group chat to remove it.")
+        else:
+            group_id = message.text.split(" ")[1]
+            if is_group_in_list(group_id):
+                userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid=?", [group_id])
+                userbotspammer.commit()
+
+                chat_info = await ubot.get_chat(group_id)
+                chat_username = chat_info.username if chat_info.username else f"ID: {group_id}"
+
+                await message.edit(f"Group @{chat_username} removed!")
+            else:
+                await message.edit("Group is not in the list.")
+    except Exception as e:
+        print(e)
+        await message.edit("Error in .remgroup!")
 
         if is_group_in_list(group_id):
             count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
