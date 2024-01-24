@@ -93,6 +93,11 @@ async def load_link(table_name, connection):
         print(f"Errore durante il recupero del link: {e}")
         return None
 
+async def delete_link(table_name, user):
+    if table_name in commands_dict:
+        del commands_dict[table_name]
+    else:
+        raise ValueError("Table not found.")
 
 spamcheck = False
 
@@ -316,32 +321,6 @@ async def percentage_command(client, message):
         # Gestisce il caso in cui la conversione o l'accesso ai valori fallisce
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
-@ubot.on_message(filters.user("self") & filters.command("setcmd", prefixes="."))
-async def set_generic_link(client, message):
-    try:
-        command_parts = message.text.split(' ', 2)
-        table_name = command_parts[1]
-        link_value = command_parts[2]
-
-        await save_link(link_value, table_name, userbotspammer)
-
-        await message.edit_text(f"Link for {table_name} set successfully.")
-    except (IndexError, ValueError):
-        await message.edit_text("Right command: .setlink [table_name] [link_value]")
-
-@ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
-async def direct_link_command(client, message):
-    try:
-        table_name = message.text[1:]
-
-        link_value = await load_link(table_name, userbotspammer)
-        if link_value:
-            await message.edit_text(f"{link_value}")
-        else:
-            await message.edit_text(f"No link set for {table_name}. Use .setlink to set a link.")
-    except (IndexError, ValueError):
-        await message.edit_text(f"Right command format: .{table_name}")
-       
 @ubot.on_message(filters.user("self") & filters.command("block", "."))
 async def block_user(client, message):
     try:
@@ -434,6 +413,44 @@ async def update_code(_, message):
     except Exception as e:
         print(e)
         await message.edit(f"Error updating the code: {str(e)}")
+
+@ubot.on_message(filters.user("self") & filters.command("setcmd", prefixes="."))
+async def set_generic_link(client, message):
+    try:
+        command_parts = message.text.split(' ', 2)
+        table_name = command_parts[1]
+        link_value = command_parts[2]
+
+        await save_link(link_value, table_name, userbotspammer)
+
+        await message.edit_text(f"Command for {table_name} set successfully.")
+    except (IndexError, ValueError):
+        await message.edit_text("Right command: .setcmd [table_name] [link_value]")
+
+@ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
+async def direct_link_command(client, message):
+    try:
+        table_name = message.text[1:]
+
+        link_value = await load_link(table_name, userbotspammer)
+        if link_value:
+            await message.edit_text(f"{link_value}")
+        else:
+            await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
+    except (IndexError, ValueError):
+        await message.edit_text(f"Right command format: .{table_name}")
+
+@ubot.on_message(filters.user("self") & filters.command("delcmd", prefixes="."))
+async def delete_generic_link(client, message):
+    try:
+        command_parts = message.text.split(' ', 2)
+        table_name = command_parts[1]
+
+        await delete_link(table_name, userbotspammer)
+
+        await message.edit_text(f"Command for {table_name} deleted successfully.")
+    except (IndexError, ValueError):
+        await message.edit_text("Right command: .delcmd [table_name]")
 
 idle()
 
