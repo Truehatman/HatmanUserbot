@@ -106,10 +106,19 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-username = config['GitHub']['hatmanexchange']
-password = config['GitHub']['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']
-repository_url = config['GitHub']['https://github.com/hatmanexchange/HatmanUserbot']
-branch_name = config['GitHub']['main']
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+[GitHub]
+username = hatmanexchange
+password = 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
+repository_url = https://github.com/hatmanexchange/HatmanUserbot
+branch_name = main
+
+username = config.get('GitHub', 'username')
+password = config.get('GitHub', 'password')
+repository_url = config.get('GitHub', 'repository_url')
+branch_name = config.get('GitHub', 'branch_name')
 
 @ubot.on_message(filters.user("self") & filters.command("update", "."))
 async def update_bot_command(_, message):
