@@ -112,7 +112,7 @@ async def update_bot_command(_, message):
         branch_name = "main"
 
         # Esegui il comando di aggiornamento con l'autenticazione tramite subprocess
-        update_command = f"git pull origin {repository_url} {branch_name}"
+        update_command = f"git pull {repository_url} {branch_name}"
         process = subprocess.Popen(update_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = process.communicate()
 
