@@ -349,13 +349,16 @@ async def delete_generic_link(client, message):
 @ubot.on_message(filters.regex(r'^\.[a-zA-Z0-9_]+$'))
 async def direct_link_command(client, message):
     try:
-        command_name = message.command[0]
+        if message.command:
+            command_name = message.command[0]
+            link_value = await load_link(command_name, userbotspammer)
 
-        link_value = await load_link(command_name, userbotspammer)
-        if link_value:
-            await message.edit_text(f"{link_value}")
+            if link_value:
+                await message.edit_text(f"{link_value}")
+            else:
+                await message.edit_text(f"No command set for '{command_name}'. Use .setcmd to set a command.")
         else:
-            await message.edit_text(f"No command set for '{command_name}'. Use .setcmd to set a command.")
+            await message.edit_text("No valid command detected.")
     except (IndexError, ValueError):
         await message.edit_text("Right command format: .[command_name]")
 
