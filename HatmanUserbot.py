@@ -164,9 +164,14 @@ async def rimuovigruppo(_, message):
             # Esegui la query per ottenere il conteggio prima della rimozione
             count_before = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
 
-            # Rimuovi il gruppo dalla lista
-            userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
-            userbotspammer.commit()
+            try:
+                # Rimuovi il gruppo dalla lista
+                userbotspammer.cursor().execute("DELETE FROM gruppi WHERE chatid = ?", [group_id])
+                userbotspammer.commit()
+            except Exception as remove_exception:
+                print(f"Error removing group (ID: {group_id}) from the list: {str(remove_exception)}")
+                await message.edit(f"Error removing group from the list.")
+                return
 
             # Esegui la query per ottenere il conteggio dopo la rimozione
             count_after = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
@@ -181,7 +186,6 @@ async def rimuovigruppo(_, message):
     except Exception as e:
         print(e)
         await message.edit(f"Error in .remgroup: {str(e)}")
-
 
         # Verifica se il gruppo è presente nella lista prima della rimozione
         if is_group_in_list(group_id):
