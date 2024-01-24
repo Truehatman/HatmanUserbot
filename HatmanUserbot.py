@@ -310,7 +310,7 @@ async def percentage_command(client, message):
         await message.edit_text("Right command is: .percentage [number] [percentage]")
 
 @ubot.on_message(filters.user("self") & filters.command("setcmd", "."))
-async def set_generic_link(client, message):
+async def set_generic_link(_, message):
     try:
         command_parts = message.text.split(' ', 2)
         table_name = command_parts[1]
@@ -323,7 +323,7 @@ async def set_generic_link(client, message):
         await message.edit_text("Right command: .setcmd [table_name] [link_value]")
 
 @ubot.on_message(filters.user("self") & filters.regex(r'^\.[a-zA-Z0-9_]+$'))
-async def direct_link_command(client, message):
+async def direct_link_command(_, message):
     try:
         table_name = message.text[1:]
 
@@ -331,7 +331,7 @@ async def direct_link_command(client, message):
         if link_value:
             await message.edit_text(f"{link_value}")
         else:
-            await message.edit_text(f"No command set for {table_name}. Use .setcmd to set a command.")
+            await message.edit_text(f"No command set for {table_name}.")
     except (IndexError, ValueError):
         await message.edit_text(f"Right command format: .{table_name}")
 
