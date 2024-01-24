@@ -390,7 +390,7 @@ async def delete_muted_messages(client, message):
         print(f"Error while deleting muted user's message: {e}")
 
 
-@ubot.on_message(filters.user("your_user_id") & filters.command("update", "."))
+@ubot.on_message(filters.user("self") & filters.command("update", "."))
 async def update_code(_, message):
     try:
         # Sostituisci 'YOUR_GITHUB_TOKEN' con il tuo token personale di GitHub
