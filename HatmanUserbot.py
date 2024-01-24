@@ -170,7 +170,7 @@ async def rimuovigruppo(_, message):
                 userbotspammer.commit()
             except Exception as remove_exception:
                 print(f"Error removing group (ID: {group_id}) from the list: {str(remove_exception)}")
-                await message.edit(f"Error removing group from the list.")
+                await message.edit(f"Error removing group from the list. {str(remove_exception)}")
                 return
 
             # Esegui la query per ottenere il conteggio dopo la rimozione
