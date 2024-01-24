@@ -98,6 +98,7 @@ spamcheck = False
 muted_users = {}
 scheduled_tasks = {}
 
+GITHUB_TOKEN = "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"
 
 @ubot.on_message(filters.user("self") & filters.command("addgroup", prefixes="."))
 async def groupadd(_, message):
@@ -402,6 +403,24 @@ async def delete_muted_messages(client, message):
             await message.delete()
     except Exception as e:
         print(f"Error while deleting muted user's message: {e}")
+
+@ubot.on_message(filters.user("self") & filters.command("update", "."))
+async def update_code(_, message):
+    try:
+        # Aggiorna il codice dalla repository su GitHub utilizzando il token di accesso personale
+        subprocess.run(["git", "pull"], env={"GH_TOKEN": GITHUB_TOKEN})
+
+        # Riavvia il bot per applicare gli aggiornamenti
+        await message.edit("Aggiornamento completato. Riavvio il bot.")
+        await asyncio.sleep(1)
+
+        # Opzionale: inserisci qui qualsiasi altro codice di inizializzazione necessario prima del riavvio
+        # ...
+
+        # Riavvia il bot
+        os.execl(sys.executable, sys.executable, *sys.argv)
+    except Exception as e:
+        await message.edit(f"Errore durante l'aggiornamento: {str(e)}")
 
 idle()
 
