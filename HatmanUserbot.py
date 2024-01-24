@@ -100,6 +100,35 @@ muted_users = {}
 scheduled_tasks = {}
 
 
+import subprocess
+
+@ubot.on_message(filters.user("self") & filters.command("update", "."))
+async def update_bot_command(_, message):
+    try:
+        await message.edit_text("Updating...")
+
+        # Sostituisci i seguenti valori con le informazioni della tua repository privata
+        repository_url = "https://hatmanexchange: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@github.com/hatmanexchange/HatmanUserbot"
+        branch_name = "main"
+
+        # Esegui il comando di aggiornamento con l'autenticazione tramite subprocess
+        update_command = f"git pull {repository_url} {branch_name}"
+        process = subprocess.Popen(update_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = process.communicate()
+
+        if not error:
+            await message.edit_text("Update successful. Restarting...")
+            
+            # Puoi implementare il riavvio del bot qui, ad esempio, utilizzando l'istanza di Client
+            await ubot.stop()
+            await ubot.start()
+        else:
+            await message.edit_text(f"Error during update:\n{error.decode('utf-8')}")
+
+    except Exception as e:
+        print(f"Error during update command: {e}")
+        await message.edit_text("Error during update.")
+
 @ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
 async def groupadd(_, message):
     try:
