@@ -32,6 +32,7 @@ import string
 from random import randint
 import time
 import sqlite3
+import subprocess
 from pyrogram.errors import PeerIdInvalid
 
 print("HatManUserbot started..")
@@ -100,30 +101,26 @@ muted_users = {}
 scheduled_tasks = {}
 
 
-import subprocess
+GITHUB_TOKEN = "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"
 
-@ubot.on_message(filters.user("self") & filters.command("update", "."))
-async def update_bot_command(_, message):
-    try:
-        await message.edit_text("Updating...")
 
-        # Esegui il comando di aggiornamento con l'autenticazione tramite subprocess
-        update_command = f"git pull {repository_url} {branch_name}"
-        process = subprocess.Popen(update_command.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, error = process.communicate()
 
-        if not error:
-            await message.edit_text("Update successful. Restarting...")
+async def auto_update():
+    while True:
+        try:
+            print("Auto-updating code...")
+            subprocess.run(["git", "pull", "origin", "main"], cwd="/HatmanUserbot", env={"GITHUB_TOKEN": GITHUB_TOKEN})
+            print("Code updated successfully.")
             
-            # Puoi implementare il riavvio del bot qui, ad esempio, utilizzando l'istanza di Client
+            # Riavvia il bot dopo l'aggiornamento
+            await asyncio.sleep(5)
             await ubot.stop()
             await ubot.start()
-        else:
-            await message.edit_text(f"Error during update:\n{error.decode('utf-8')}")
+        except Exception as e:
+            print(f"Error during auto-update: {e}")
+        await asyncio.sleep(12 * 60 * 60)
 
-    except Exception as e:
-        print(f"Error during update command: {e}")
-        await message.edit_text("Error during update.")
+
 
 @ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
 async def groupadd(_, message):
