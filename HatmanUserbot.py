@@ -378,43 +378,38 @@ async def unblock_user(client, message):
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(client, message):
     try:
-        # Estrai l'ID dell'utente a cui si sta rispondendo
-        user_id = message.reply_to_message.from_user.id
+        # Verifica se è un comando personalizzato
+        if not is_custom_command(message.text):
+            # Estrai l'ID dell'utente a cui si sta rispondendo
+            user_id = message.reply_to_message.from_user.id
 
-        # Aggiungi l'utente al database dei muteati
-        userbotspammer.cursor().execute("INSERT INTO muted_users (user_id) VALUES (?)", [user_id])
-        userbotspammer.commit()
-
-        await message.edit_text("User muted successfully.")
+            # Aggiungi l'utente al dizionario dei muteati
+            muted_users[user_id] = True
+        
+            await message.edit_text("User muted successfully.")
     except Exception as e:
         print(f"Error while muting user: {e}")
         await message.edit_text("Error while muting user.")
-        
+
 @ubot.on_message(filters.command("unmute", ".") & filters.reply)
 async def unmute_user(client, message):
     try:
-        # Estrai l'ID dell'utente a cui si sta rispondendo
-        user_id = message.reply_to_message.from_user.id
+        # Verifica se è un comando personalizzato
+        if not is_custom_command(message.text):
+            # Estrai l'ID dell'utente a cui si sta rispondendo
+            user_id = message.reply_to_message.from_user.id
 
-        # Rimuovi l'utente dal database dei muteati
-        userbotspammer.cursor().execute("DELETE FROM muted_users WHERE user_id=?", [user_id])
-        userbotspammer.commit()
+            # Rimuovi l'utente dal dizionario dei muteati
+            muted_users.pop(user_id, None)
 
-        await message.edit_text("User unmuted successfully.")
+            await message.edit_text("User unmuted successfully.")
     except Exception as e:
         print(f"Error while unmuting user {e}")
         await message.edit_text("Error while unmuting user.")
 
-# Handler per eliminare i messaggi degli utenti muteati
-@ubot.on_message(filters.text)
-async def delete_muted_messages(client, message):
-    try:
-        # Verifica se l'utente è muteato e se il mittente è valido
-        if message.from_user and is_user_muted(message.from_user.id):
-            # Elimina il messaggio
-            await message.delete()
-    except Exception as e:
-        print(f"Error while deleting muted user's message: {e}")
+def is_custom_command(text):
+    # Aggiungi qui la logica per verificare se è un comando personalizzato
+    return text.startswith(".setcmd") or text.startswith(".delcmd") or text.startswith(".your_custom_command")
 
 # Funzione per verificare se un utente è muteato
 def is_user_muted(user_id):
