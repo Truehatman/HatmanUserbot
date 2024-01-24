@@ -112,7 +112,7 @@ config.read('config.ini')
 [GitHub]
 username = hatmanexchange
 password = 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
-repository_url = https://github.com/hatmanexchange/HatmanUserbot
+repository_url = "https://github.com/hatmanexchange/HatmanUserbot"
 branch_name = main
 
 username = config.get('GitHub', 'username')
