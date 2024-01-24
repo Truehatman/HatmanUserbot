@@ -377,6 +377,17 @@ def is_user_muted(user_id):
         print(f"Error checking if user is muted: {e}")
         return False
 
+@ubot.on_message(filters.text)
+async def delete_muted_messages(client, message):
+    try:
+        # Verifica se l'utente è muteato e se il mittente è valido
+        if message.from_user and is_user_muted(message.from_user.id):
+            # Elimina il messaggio
+            await message.delete()
+    except Exception as e:
+        print(f"Error while deleting muted user's message: {e}")
+      return False
+
 @ubot.on_message(filters.command("mute", ".") & filters.reply)
 async def mute_user(_, message):
     try:
@@ -391,16 +402,6 @@ async def mute_user(_, message):
     except Exception as e:
         print(f"Error while muting user: {e}")
         await message.edit_text("Error while muting user.")
-
-@ubot.on_message(filters.text)
-async def delete_muted_messages(client, message):
-    try:
-        # Verifica se l'utente è muteato e se il mittente è valido
-        if message.from_user and is_user_muted(message.from_user.id):
-            # Elimina il messaggio
-            await message.delete()
-    except Exception as e:
-        print(f"Error while deleting muted user's message: {e}")
 
 @ubot.on_message(filters.command("unmute", ".") & filters.reply)
 async def unmute_user(_, message):
