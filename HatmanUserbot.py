@@ -171,8 +171,12 @@ async def rimuovigruppo(_, message):
                 await message.edit(f"Errore nel rimuovere")
 
 def is_group_in_list(group_id):
-    result = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi WHERE chatid = ?", [group_id]).fetchone()[0]
-    return result > 0
+    try:
+        result = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi WHERE chatid = ?", [group_id]).fetchone()[0]
+        return result > 0
+    except Exception as e:
+        print(f"Error in is_group_in_list: {str(e)}")
+        return False
 
 # Funzione per avviare la lista dei gruppi
 @ubot.on_message(filters.user("self") & filters.command("grouplist", prefixes="."))
