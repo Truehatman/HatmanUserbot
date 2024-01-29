@@ -101,24 +101,7 @@ muted_users = {}
 scheduled_tasks = {}
 
 
-GITHUB_TOKEN = "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"
 
-
-
-async def auto_update():
-    while True:
-        try:
-            print("Auto-updating code...")
-            subprocess.run(["git", "pull", "origin", "main"], cwd="/HatmanUserbot", env={"GITHUB_TOKEN": GITHUB_TOKEN})
-            print("Code updated successfully.")
-            
-            # Riavvia il bot dopo l'aggiornamento
-            await asyncio.sleep(5)
-            await ubot.stop()
-            await ubot.start()
-        except Exception as e:
-            print(f"Error during auto-update: {e}")
-        await asyncio.sleep(12 * 60 * 60)
 
 
 
