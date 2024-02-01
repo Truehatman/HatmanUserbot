@@ -230,11 +230,9 @@ async def tempo(_, message):
         minuti = message.text.split(" ")[1]
         try:
             minuti = int(minuti)
-            secondi = minuti * 60
-            if secondi >= 300:
+            if minuti >= 5:
                 timespam = minuti
                 await message.edit(f"Time set on {timespam} minutes")
-                timespam = secondi
             else:
                 await message.edit("Min is 5 minutes")
         except ValueError:
@@ -247,7 +245,7 @@ async def setmex(_, message):
     global messaggio
     try:
         messaggio = message.text.replace(f".setmex", "")
-        await message.edit(f" Message set <code>{messaggio}</code>")
+        await message.edit(f"Message set <code>{messaggio}</code>")
     except:
         await message.edit("Wrong format, .setmex Messaggio")
 
@@ -256,11 +254,11 @@ async def spamavviato(_, message):
     global spamcheck
     count = userbotspammer.cursor().execute("SELECT COUNT(chatid) FROM gruppi").fetchone()[0]
     if count == 0:
-        await message.edit(" There are no group!")
+        await message.edit("There are no groups!")
     else:
         if not spamcheck:
             spamcheck = True
-            await message.edit(f" Spam started in {count} group")
+            await message.edit(f"Spam started in {count} groups")
             while spamcheck:
                 for gruppi, in userbotspammer.cursor().execute("SELECT chatid FROM gruppi").fetchall():
                     try:
@@ -268,9 +266,10 @@ async def spamavviato(_, message):
                         await asyncio.sleep(0.7)
                     except:
                          await asyncio.sleep(0.7)
-                await asyncio.sleep(int(timespam))
+                await asyncio.sleep(timespam * 60)
+            spamcheck = False  # Assicurati di reimpostare spamcheck dopo il ciclo di spam
         else:
-            await message.edit("wrong format, .spam")
+            await message.edit("Wrong format, .spam")
 
 
 
