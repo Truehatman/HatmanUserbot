@@ -291,7 +291,7 @@ async def help_command(client, message):
 
 @ubot.on_message(filters.user("self") & filters.command("dev", prefixes="."))
 async def creator_command(client, message):
-    await message.edit_text("I am developed by @hatmanexchanger!")
+    await message.edit_text("I am developed by @TrueHatman!")
 
 @ubot.on_message(filters.user("self") & filters.command("percentage", prefixes="."))
 async def percentage_command(client, message):
