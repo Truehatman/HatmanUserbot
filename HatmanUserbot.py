@@ -38,8 +38,8 @@ from pyrogram.errors import PeerIdInvalid
 print("HatManUserbot started..")
 print("#######################")
 
-ubot = Client("killersession", api_id=25047326,
-              api_hash="9673ea812441c77e912979cd0f8a2572", lang_code="it")
+ubot = Client("killersession", api_id=22362889,
+              api_hash="0506d94689d56178fbdb71e6a7c66156", lang_code="it")
 ubot.start()
 
 IDSSS, usernamesss = (ubot.get_me()).id, (ubot.get_me()).username
