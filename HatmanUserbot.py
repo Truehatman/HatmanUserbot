@@ -103,7 +103,24 @@ scheduled_tasks = {}
 
 
 
+async def update_code():
+    try:
+        # Fetch the latest code from GitHub
+        os.system("git pull origin main")  # Replace "main" with your branch name if different
 
+        # Restart the bot after updating the code
+        os.execv(sys.executable, ["python"] + sys.argv)
+    except Exception as e:
+        print(f"Error during code update: {e}")
+
+# Command to update the code
+@ubot.on_message(filters.user("self") & filters.command("update", "."))
+async def update_code_command(_, message):
+    try:
+        await update_code()
+        await message.edit("Code updated")
+    except Exception as e:
+        await message.edit(f"Error updating code: {e}")
 
 @ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
 async def groupadd(_, message):
