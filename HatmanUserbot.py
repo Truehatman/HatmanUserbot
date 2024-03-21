@@ -106,31 +106,29 @@ async def send_away_message(user_id):
         print(f"Error sending away message: {e}")
 
 spamcheck = False
-max_away_time = 600
+
 muted_users = {}
 scheduled_tasks = {}
 translator = Translator()
 
-@ubot.on_message(filters.command("update", "."))
-async def update_bot(client, message):
-    try:
-        current_file_path = os.path.abspath(__file__)
-        current_directory = os.path.dirname(current_file_path)
-        repo_path = os.path.join(current_directory, "Userbot")
-        if not os.path.exists(repo_path):
-            os.makedirs(repo_path)
-        repo_url = "https://github.com/Truehatman/HatmanUserbot.git"
-        if not os.path.exists(repo_path):
-            git.Repo.clone_from(repo_url, repo_path)
-        else:
-            repo = git.Repo(repo_path)
-            origin = repo.remotes.origin
-            origin.pull()
-        await message.reply("Bot updated. Restarting...")
-        await client.stop()
-    except Exception as e:
-        print(f"Error updating bot: {e}")
-        await message.reply("An error occurred while updating the bot.")
+@ubot.on_message(filters.user("self") & filters.command("update", "."))
+        async def update_bot(client, message):
+            try:
+                current_dir = os.path.dirname(__file__)
+        
+                if not os.path.isdir(current_dir):
+                    await message.edit("Bot directory not found.")
+                    return
+        
+                repo = git.Repo(current_dir)
+                origin = repo.remote()
+                origin.pull()
+        
+                await message.edit("Bot updated successfully.")
+            except git.exc.GitCommandError as e:
+                await message.edit(f"Error updating bot: {e}")
+            except Exception as e:
+                await message.edit(f"General error updating bot: {e}")
 
 @ubot.on_message(filters.user("self") & filters.command("clean", "."))
 async def clean_chat(client, message):
@@ -183,20 +181,21 @@ async def giveaway(_, message):
         print(f"Error running giveaway: {e}")
         await message.reply("An error occurred while running the giveaway.")
 
-@ubot.on_message(filters.command("translate", ".") & filters.reply)
-async def translate_message(client, message):
-    try:
-        target_language = message.text.split(" ", 2)[1]
-        reply_message = message.reply_to_message
-        text_to_translate = reply_message.text if reply_message.text else reply_message.caption
-
-        translation = translator.translate(text_to_translate, dest=target_language)
-        translated_text = translation.text
-
-        await message.reply(f"Translated text ({target_language}):\n{translated_text}")
-    except Exception as e:
-        print(f"Error translating message: {e}")
-        await message.reply("Error translating message.")
+from googletrans import Translator
+        
+        translator = Translator()
+        
+        @ubot.on_message(filters.command("translate", "."))
+        async def translate_message(client, message):
+            try:
+                args = message.text.split()[1:]
+                source_lang = args[0]
+                target_lang = args[1]
+                text_to_translate = " ".join(args[2:])
+                translated_text = translator.translate(text_to_translate, src=source_lang, dest=target_lang).text
+                await message.reply(translated_text)
+            except Exception as e:
+                await message.reply(f"Error during translation: {e}")
         
 @ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
 async def groupadd(_, message):
