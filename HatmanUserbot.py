@@ -21,7 +21,6 @@ import asyncio
 import datetime
 from multiprocessing import get_context
 import os
-import git
 import traceback
 import requests
 import validators
@@ -35,7 +34,6 @@ import time
 import sqlite3
 import subprocess
 from pyrogram.errors import PeerIdInvalid
-from googletrans import Translator
 
 
 print("HatManUserbot started..")
@@ -98,82 +96,20 @@ async def delete_link(table_name, connection):
     except Exception as e:
         print(f"Errore durante l'eliminazione del link: {e}")
 
-async def send_away_message(user_id):
-    global away_message
-    try:
-        await ubot.send_message(user_id, away_message)
-    except Exception as e:
-        print(f"Error sending away message: {e}")
-
 spamcheck = False
-
 muted_users = {}
 scheduled_tasks = {}
-translator = Translator()
-
-@ubot.on_message(filters.user("self") & filters.command("update", "."))
-        async def update_bot(client, message):
-            try:
-                current_dir = os.path.dirname(__file__)
-        
-                if not os.path.isdir(current_dir):
-                    await message.edit("Bot directory not found.")
-                    return
-        
-                repo = git.Repo(current_dir)
-                origin = repo.remote()
-                origin.pull()
-        
-                await message.edit("Bot updated successfully.")
-            except git.exc.GitCommandError as e:
-                await message.edit(f"Error updating bot: {e}")
-            except Exception as e:
-                await message.edit(f"General error updating bot: {e}")
-
-@ubot.on_message(filters.user("self") & filters.command("clean", "."))
-async def clean_chat(client, message):
-    try:
-        chat_id = message.chat.id
-        messages = await client.get_history(chat_id)
-        for msg in messages:
-            await client.delete_messages(chat_id, msg.message_id)
-        await message.edit("Chat cleaned successfully.")
-    except Exception as e:
-        print(f"Error cleaning chat: {e}")
-        await message.edit("Error cleaning chat.")
-
-@ubot.on_message(filters.user("self") & filters.command("away", "."))
-async def set_away_message(_, message):
-    global away_message
-    try:
-        away_message = message.text.replace(".away", "")
-        await message.edit(f"Away message set to <code>{away_message}</code>")
-    except:
-        await message.edit("Wrong format, .away Message")
-
-async def check_away_status():
-    global max_away_time
-    while True:
-        try:
-            await asyncio.sleep(max_away_time)
-            if away_message:
-                await send_away_message(user_id)
-        except Exception as e:
-            print(f"Error checking away status: {e}")
-
-ubot.loop.create_task(check_away_status())
-
 
 @ubot.on_message(filters.command("giveaway", "."))
 async def giveaway(_, message):
     try:
-       
+
         items = message.text.split(" ")[1:]
-        
+
         if len(items) == 0:
             await message.reply("Please provide a list of items for the giveaway.")
             return
-        
+
         winner = random.choice(items)
 
         await message.reply(f"The winner of the giveaway is: {winner}")
@@ -181,22 +117,6 @@ async def giveaway(_, message):
         print(f"Error running giveaway: {e}")
         await message.reply("An error occurred while running the giveaway.")
 
-from googletrans import Translator
-        
-        translator = Translator()
-        
-        @ubot.on_message(filters.command("translate", "."))
-        async def translate_message(client, message):
-            try:
-                args = message.text.split()[1:]
-                source_lang = args[0]
-                target_lang = args[1]
-                text_to_translate = " ".join(args[2:])
-                translated_text = translator.translate(text_to_translate, src=source_lang, dest=target_lang).text
-                await message.reply(translated_text)
-            except Exception as e:
-                await message.reply(f"Error during translation: {e}")
-        
 @ubot.on_message(filters.user("self") & filters.command("addgroup", "."))
 async def groupadd(_, message):
     try:
@@ -294,10 +214,10 @@ async def listagruppi(_, message):
                     gruppimsg += f"➥ Group ID: <code>{gruppi}</code>\n"
                 except Exception as e:
                     print(f"Error processing group {gruppi}: {e}")
-                    
+
             print(f"Group list:\n{gruppimsg}")  # Aggiunta di una stampa per il debug
             await message.edit(f"<b>Group list:</b>\n{gruppimsg}")
-    
+
     except Exception as e:
         print(f"Error in .grouplist: {e}")
         await message.edit("Error in .grouplist!")
