@@ -106,7 +106,7 @@ async def send_away_message(user_id):
         print(f"Error sending away message: {e}")
 
 spamcheck = False
-
+max_away_time = 600
 muted_users = {}
 scheduled_tasks = {}
 translator = Translator()
