@@ -133,12 +133,12 @@ async def update_bot(client, message):
         await message.reply("An error occurred while updating the bot.")
 
 @ubot.on_message(filters.user("self") & filters.command("clean", "."))
-async def clean_chat(_, message):
+async def clean_chat(client, message):
     try:
         chat_id = message.chat.id
-        messages = await ubot.get_history(chat_id)
+        messages = await client.get_history(chat_id)
         for msg in messages:
-            await ubot.delete_messages(chat_id, msg.message_id)
+            await client.delete_messages(chat_id, msg.message_id)
         await message.edit("Chat cleaned successfully.")
     except Exception as e:
         print(f"Error cleaning chat: {e}")
