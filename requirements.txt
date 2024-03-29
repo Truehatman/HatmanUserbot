@@ -1,5 +1,4 @@
 pyrogram
 asyncio
-multiprocessing
 requests
 validators
