@@ -1,4 +1,4 @@
-pyrogram==1.7.1
+pyrogram
 asyncio
 multiprocessing
 requests
